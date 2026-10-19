@@ -82,3 +82,22 @@ export type {
   HeroAdminService,
   HeroMutationOutcome,
 } from "./hero-admin.ts";
+export {
+  EMPTY_SKIN_FORM_VALUES,
+  SKIN_RARITY_OPTIONS,
+  SKIN_VARIANT_OPTIONS,
+  parseSkinForm,
+  rarityLabel,
+  skinToFormValues,
+  variantLabel,
+} from "./skin-form.ts";
+export type { SkinFormValues, SkinHeroOption } from "./skin-form.ts";
+export {
+  SKIN_TRANSITIONS,
+  createSkinAdminService,
+} from "./skin-admin.ts";
+export type {
+  SkinActionState,
+  SkinAdminService,
+  SkinMutationOutcome,
+} from "./skin-admin.ts";

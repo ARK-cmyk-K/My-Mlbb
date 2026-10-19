@@ -1,12 +1,21 @@
 import type { DraftHero } from "./contracts.ts";
 import {
+  isUuid,
+  readCheckbox,
+  readOptionalNumber,
+  readString,
+} from "./form-utils.ts";
+import {
   HERO_ROLES,
   validateHeroInput,
-  type FieldIssue,
   type HeroInput,
   type HeroRole,
   type ValidationResult,
 } from "./validation.ts";
+
+// Re-exported for the public API established by task 03-01; the helpers now
+// live in `form-utils.ts` because the skin editor (03-02) needs the same ones.
+export { isUuid, issuesByPath, slugify } from "./form-utils.ts";
 
 /**
  * Hero form ⇄ payload mapping (task 03-01).
@@ -83,14 +92,6 @@ export function heroToFormValues(hero: DraftHero): HeroFormValues {
   };
 }
 
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-/** True when `value` is a canonical UUID (the `media.id` column type). */
-export function isUuid(value: string): boolean {
-  return UUID_PATTERN.test(value);
-}
-
 /**
  * Parses a hero form submission into a validated payload.
  *
@@ -134,56 +135,3 @@ export function parseHeroForm(formData: FormData): ValidationResult<HeroInput> {
   return result;
 }
 
-/** First caller-safe message per field path, for rendering under each input. */
-export function issuesByPath(
-  issues: FieldIssue[] | undefined
-): Record<string, string> {
-  const byPath: Record<string, string> = {};
-  for (const issue of issues ?? []) {
-    if (!(issue.path in byPath)) {
-      byPath[issue.path] = issue.message;
-    }
-  }
-  return byPath;
-}
-
-/**
- * Turns free text into a schema-valid slug (lowercase, single hyphens) so the
- * create form can suggest one from the hero name. The server still validates it.
- */
-export function slugify(value: string, maxLength = 140): string {
-  const slug = value
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, maxLength)
-    .replace(/-+$/g, "");
-  return slug;
-}
-
-function readString(formData: FormData, name: string): string {
-  const raw = formData.get(name);
-  return typeof raw === "string" ? raw : "";
-}
-
-/**
- * Reads a numeric field. A blank input stays `undefined` so the validator's
- * default (or `null` for the optional win rate) applies; non-numeric text is
- * passed through as `NaN` so the validator returns a field-level error instead
- * of the value being silently dropped.
- */
-function readOptionalNumber(formData: FormData, name: string): number | undefined {
-  const raw = readString(formData, name).trim();
-  if (raw === "") {
-    return undefined;
-  }
-  return Number(raw);
-}
-
-/** An unchecked checkbox is absent from the submission entirely. */
-function readCheckbox(formData: FormData, name: string): boolean {
-  const raw = formData.get(name);
-  return raw === "on" || raw === "true" || raw === "1";
-}

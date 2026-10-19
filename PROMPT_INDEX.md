@@ -18,7 +18,7 @@ Use one prompt per task. IDs are stable and should be referenced in `PROJECT_STA
 
 ## Phase 3 — Collection management and import/export
 - [ ] `03-01` Hero CRUD (implemented, unverified — no live Supabase provider)
-- [ ] `03-02` Skin CRUD
+- [ ] `03-02` Skin CRUD (implemented, unverified — no live Supabase provider)
 - [ ] `03-03` CSV dry-run import and validation
 - [ ] `03-04` Import merge-resolution workflow
 - [ ] `03-05` JSON backup export and media manifest
