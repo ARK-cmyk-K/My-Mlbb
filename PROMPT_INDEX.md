@@ -3,10 +3,10 @@
 Use one prompt per task. IDs are stable and should be referenced in `PROJECT_STATE.md`.
 
 ## Phase 1 — Project setup and database foundations
-- [ ] `01-01` Project audit and bootstrap
-- [ ] `01-02` Design tokens and typography
-- [ ] `01-03` Core database schema migration
-- [ ] `01-04` RLS, grants, and storage security foundations
+- [x] `01-01` Project audit and bootstrap
+- [x] `01-02` Design tokens and typography
+- [x] `01-03` Core database schema migration
+- [x] `01-04` RLS, grants, and storage security foundations
 - [ ] `01-05` Published-content search RPC and indexes
 - [ ] `01-06` Phase 1 validation and migration documentation
 
