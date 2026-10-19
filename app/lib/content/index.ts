@@ -56,7 +56,29 @@ export type {
 export type {
   FieldIssue,
   HeroInput,
+  HeroRole,
   SkinInput,
   TimelineEntryInput,
   ValidationResult,
 } from "./validation.ts";
+export { HERO_ROLES } from "./validation.ts";
+export {
+  EMPTY_HERO_FORM_VALUES,
+  HERO_ROLE_OPTIONS,
+  heroToFormValues,
+  isUuid,
+  issuesByPath,
+  parseHeroForm,
+  roleLabel,
+  slugify,
+} from "./hero-form.ts";
+export type { HeroFormValues } from "./hero-form.ts";
+export {
+  HERO_TRANSITIONS,
+  createHeroAdminService,
+} from "./hero-admin.ts";
+export type {
+  HeroActionState,
+  HeroAdminService,
+  HeroMutationOutcome,
+} from "./hero-admin.ts";
