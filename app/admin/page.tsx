@@ -1,66 +1,90 @@
-/** Admin dashboard page — protected server-side.
+import Link from "next/link";
+
+import { requireAdmin } from "../auth/requireAdmin";
+import { DashboardIcon } from "./dashboard-icons";
+import { dashboardNavItems } from "./dashboard-nav";
+
+/**
+ * Dashboard overview (task 02-02).
  *
- * This route is PROTECTED using the authenticateAdmin wrapper from
- * app/auth/adminAuth. Unauthenticated or non-admin requests receive
- * a 401/403 response before the page component renders.
- *
- * @see app/auth/adminAuth.tsx for the authenticateAdmin pattern
+ * Server component: it re-checks authorization and renders orientation content
+ * plus links into each placeholder section. No data is read from the database
+ * here — the draft/published service lands in task 02-03.
  */
+export default async function AdminOverviewPage() {
+  await requireAdmin();
 
-import { authenticateAdmin } from "../auth/adminAuth";
+  // Overview itself is excluded from the quick-link grid.
+  const sections = dashboardNavItems.filter((item) => item.href !== "/admin");
 
-// ---------------------------------------------------------------------------
-// Page default export — the UI shown when /admin is accessed.
-// Shown only after admin authentication passes.
-// ---------------------------------------------------------------------------
-
-export default function AdminDashboard() {
   return (
-    <section className="p-6">
-      <h1 className="font-display text-2xl font-semibold text-foreground">
-        Admin Dashboard
+    <section className="max-w-4xl">
+      <h1 className="font-display text-2xl font-semibold text-foreground sm:text-3xl">
+        Dashboard overview
       </h1>
-      <p className="text-muted">
-        Welcome to the private administration area. This route is protected
-        server-side: only the configured admin (after running
-        UPDATE public.admin_identity SET admin_user_id = …) can access it.
+      <p className="mt-2 max-w-2xl text-muted">
+        Private workspace for the MLBB Showcase. Content is edited here as
+        drafts and only becomes public through a release. This shell adds
+        navigation and layout; the individual editors arrive in later tasks.
       </p>
-      <ul className="list-disc pl-4 mt-4 text-sm">
-        <li>Navigate via the sidebar to manage Heroes, Skins, Appearance, Releases</li>
-        <li>All CRUD operations are server-side only; this page is the shell</li>
-        <li>Configure the admin mapping after creating the admin user in Supabase Auth</li>
+
+      <div className="mt-6 rounded-lg border border-border bg-surface-raised p-5">
+        <h2 className="font-display text-base font-semibold text-foreground">
+          Current status
+        </h2>
+        <ul className="mt-3 space-y-2 text-sm text-muted">
+          <li>
+            <span className="font-medium text-foreground">
+              Authentication is a fail-closed scaffold.
+            </span>{" "}
+            The admin session check and the database admin mapping (task 02-01)
+            are not finished, so this route is protected but not yet usable by
+            an operator.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">
+              Draft and published data are not connected.
+            </span>{" "}
+            The header status markers stay empty until the draft/published state
+            service (task 02-03) is in place.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">
+              Nothing here reads or writes data.
+            </span>{" "}
+            Each section below is a labelled placeholder.
+          </li>
+        </ul>
+      </div>
+
+      <h2 className="mt-8 font-display text-lg font-semibold text-foreground">
+        Sections
+      </h2>
+      <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+        {sections.map((item) => (
+          <li key={item.id}>
+            <Link
+              href={item.href}
+              className="flex h-full gap-3 rounded-lg border border-border bg-surface p-4 transition-colors hover:border-border-strong hover:bg-surface-raised"
+            >
+              <span className="mt-0.5 text-primary">
+                <DashboardIcon name={item.id} />
+              </span>
+              <span className="min-w-0">
+                <span className="block font-medium text-foreground">
+                  {item.label}
+                </span>
+                <span className="mt-0.5 block text-sm text-muted">
+                  {item.description}
+                </span>
+                <span className="mt-2 block text-xs uppercase tracking-wide text-muted">
+                  Task {item.task}
+                </span>
+              </span>
+            </Link>
+          </li>
+        ))}
       </ul>
     </section>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Route handler — server-side admin protection.
-// authenticateAdmin wraps this and checks the session + is_admin() DB function.
-// Returns 401 if no session, 403 if not admin, proceeds only for the admin.
-// ---------------------------------------------------------------------------
-
-export const GET = authenticateAdmin(async () => {
-  return new Response(
-    `
-      <h1 className="font-display text-2xl font-semibold text-foreground">
-        Admin Dashboard
-      </h1>
-      <p className="text-muted">
-        Welcome to the private administration area. This route is protected
-        server-side: only the configured admin (after running
-        UPDATE public.admin_identity SET admin_user_id = …) can access it.
-      </p>
-      <ul className="list-disc pl-4 mt-4 text-sm">
-        <li>Navigate via the sidebar to manage Heroes, Skins, Appearance, Releases</li>
-        <li>All CRUD operations are server-side only; this page is the shell</li>
-        <li>Configure the admin mapping after creating the admin user in Supabase Auth</li>
-      </ul>
-    `,
-    {
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-      },
-    }
-  );
-});

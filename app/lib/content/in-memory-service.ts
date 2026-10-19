@@ -1,0 +1,462 @@
+import type {
+  ActiveRelease,
+  DraftAchievement,
+  DraftHero,
+  DraftSkin,
+  DraftState,
+  DraftTimelineEntry,
+  PublishedRelease,
+} from "./contracts.ts";
+import { resolveDraftTransition } from "./contracts.ts";
+import { ContentServiceError } from "./errors.ts";
+import type {
+  ContentService,
+  DraftListOptions,
+  DraftResource,
+} from "./port.ts";
+import {
+  validateHeroInput,
+  validateSkinInput,
+  validateTimelineEntryInput,
+} from "./validation.ts";
+import type {
+  HeroInput,
+  SkinInput,
+  TimelineEntryInput,
+} from "./validation.ts";
+
+/**
+ * In-memory content-service double (task 02-03).
+ *
+ * Why it exists: this environment has no local Supabase stack and no hosted
+ * project (see PROJECT_STATE.md "Blockers and risks"), so the *authorization,
+ * validation and transition* behaviour of the service has to be testable
+ * without a database. This double enforces the same rules the Supabase
+ * implementation does — the same validators, the same `resolveDraftTransition`
+ * map, the same typed errors — and additionally models the fail-closed admin
+ * gate so "unauthorized draft reads/writes" are real test cases.
+ *
+ * It deliberately does NOT re-implement RLS; it is a test seam, never wired into
+ * the application. Production always uses `createSupabaseContentService`.
+ */
+
+/** Who is making the call. `admin: false` is the fail-closed default. */
+export interface InMemoryActor {
+  /** Whether a verified session exists at all. */
+  authenticated: boolean;
+  /** Whether that session is the configured admin. */
+  admin: boolean;
+  /** Whether Supabase "is configured" in this scenario. */
+  configured: boolean;
+}
+
+export interface SeedData {
+  heroes?: Array<Partial<DraftHero>>;
+  skins?: Array<Partial<DraftSkin>>;
+  achievements?: Array<Partial<DraftAchievement>>;
+  timelineEntries?: Array<Partial<DraftTimelineEntry>>;
+  publishedRelease?: PublishedRelease | null;
+}
+
+const UNAUTHENTICATED_ACTOR: InMemoryActor = {
+  authenticated: false,
+  admin: false,
+  configured: true,
+};
+
+let idCounter = 0;
+function nextId(prefix: string): string {
+  idCounter += 1;
+  return `${prefix}-${idCounter.toString().padStart(4, "0")}`;
+}
+
+function nowIso(): string {
+  return new Date().toISOString();
+}
+
+/** Builds a fully-populated draft hero from a (partial) seed. */
+function seedHero(seed: Partial<DraftHero>): DraftHero {
+  return {
+    id: seed.id ?? nextId("hero"),
+    name: seed.name ?? "Seed Hero",
+    slug: seed.slug ?? nextId("seed-hero"),
+    primaryRole: seed.primaryRole ?? "fighter",
+    secondaryRole: seed.secondaryRole ?? null,
+    specialty: seed.specialty ?? null,
+    portraitMediaId: seed.portraitMediaId ?? null,
+    masteryLevel: seed.masteryLevel ?? 0,
+    totalMatches: seed.totalMatches ?? 0,
+    winRate: seed.winRate ?? null,
+    isSignature: seed.isSignature ?? false,
+    isFavorite: seed.isFavorite ?? false,
+    publicationState: seed.publicationState ?? "draft",
+    archivedAt: seed.archivedAt ?? null,
+    createdAt: seed.createdAt ?? nowIso(),
+    updatedAt: seed.updatedAt ?? nowIso(),
+  };
+}
+
+function seedSkin(seed: Partial<DraftSkin>): DraftSkin {
+  return {
+    id: seed.id ?? nextId("skin"),
+    name: seed.name ?? "Seed Skin",
+    slug: seed.slug ?? nextId("seed-skin"),
+    heroId: seed.heroId ?? null,
+    rarity: seed.rarity ?? "basic",
+    series: seed.series ?? null,
+    splashArtMediaId: seed.splashArtMediaId ?? null,
+    variant: seed.variant ?? null,
+    acquisitionDate: seed.acquisitionDate ?? null,
+    acquisitionMilestone: seed.acquisitionMilestone ?? null,
+    isOwned: seed.isOwned ?? false,
+    isFavorite: seed.isFavorite ?? false,
+    publicationState: seed.publicationState ?? "draft",
+    archivedAt: seed.archivedAt ?? null,
+    createdAt: seed.createdAt ?? nowIso(),
+    updatedAt: seed.updatedAt ?? nowIso(),
+  };
+}
+
+function seedTimelineEntry(
+  seed: Partial<DraftTimelineEntry>
+): DraftTimelineEntry {
+  return {
+    id: seed.id ?? nextId("timeline"),
+    title: seed.title ?? "Seed entry",
+    body: seed.body ?? null,
+    kind: seed.kind ?? "milestone",
+    occurredOn: seed.occurredOn ?? "2026-01-01",
+    mediaId: seed.mediaId ?? null,
+    isHighlight: seed.isHighlight ?? false,
+    publicationState: seed.publicationState ?? "draft",
+    archivedAt: seed.archivedAt ?? null,
+    createdAt: seed.createdAt ?? nowIso(),
+    updatedAt: seed.updatedAt ?? nowIso(),
+  };
+}
+
+function seedAchievement(seed: Partial<DraftAchievement>): DraftAchievement {
+  return {
+    id: seed.id ?? nextId("achievement"),
+    title: seed.title ?? "Seed achievement",
+    description: seed.description ?? null,
+    category: seed.category ?? "other",
+    earnedOn: seed.earnedOn ?? null,
+    iconMediaId: seed.iconMediaId ?? null,
+    publicationState: seed.publicationState ?? "draft",
+    archivedAt: seed.archivedAt ?? null,
+    createdAt: seed.createdAt ?? nowIso(),
+    updatedAt: seed.updatedAt ?? nowIso(),
+  };
+}
+
+export interface InMemoryServiceOptions {
+  actor?: InMemoryActor;
+  seed?: SeedData;
+}
+
+/**
+ * Creates a fresh in-memory service. Each call gets its own data, so tests are
+ * isolated by construction.
+ */
+export function createInMemoryContentService(
+  options: InMemoryServiceOptions = {}
+): ContentService {
+  const actor = options.actor ?? UNAUTHENTICATED_ACTOR;
+  const heroes = (options.seed?.heroes ?? []).map(seedHero);
+  const skins = (options.seed?.skins ?? []).map(seedSkin);
+  const achievements = (options.seed?.achievements ?? []).map(seedAchievement);
+  const timelineEntries = (options.seed?.timelineEntries ?? []).map(
+    seedTimelineEntry
+  );
+  const publishedRelease = options.seed?.publishedRelease ?? null;
+
+  function requireAdmin(): void {
+    if (!actor.configured) {
+      throw new ContentServiceError("NOT_CONFIGURED");
+    }
+    if (!actor.authenticated) {
+      throw new ContentServiceError("UNAUTHENTICATED");
+    }
+    if (!actor.admin) {
+      throw new ContentServiceError("UNAUTHORIZED");
+    }
+  }
+
+  function requirePublicConfigured(): void {
+    if (!actor.configured) {
+      throw new ContentServiceError("NOT_CONFIGURED");
+    }
+  }
+
+  function applyListFilter<T extends { publicationState: DraftState }>(
+    rows: T[],
+    listOptions: DraftListOptions
+  ): T[] {
+    if (listOptions.state) {
+      return rows.filter((row) => row.publicationState === listOptions.state);
+    }
+    return listOptions.includeArchived
+      ? rows
+      : rows.filter((row) => row.publicationState !== "archived");
+  }
+
+  function findIndex<T extends { id: string }>(rows: T[], id: string): number {
+    const index = rows.findIndex((row) => row.id === id);
+    if (index === -1) {
+      throw new ContentServiceError("NOT_FOUND", {
+        message: `No record exists with id "${id}".`,
+      });
+    }
+    return index;
+  }
+
+  /** Enforces unique slugs the way the schema's unique index does. */
+  function assertUniqueSlug(
+    rows: Array<{ id: string; slug: string }>,
+    slug: string,
+    selfId?: string
+  ): void {
+    const clash = rows.some((row) => row.slug === slug && row.id !== selfId);
+    if (clash) {
+      throw new ContentServiceError("CONFLICT", {
+        message: `Slug "${slug}" is already in use.`,
+      });
+    }
+  }
+
+  function assertHeroExists(heroId: string | null): void {
+    if (heroId && !heroes.some((hero) => hero.id === heroId)) {
+      throw new ContentServiceError("DEPENDENCY_MISSING", {
+        message: `No hero exists with id "${heroId}".`,
+      });
+    }
+  }
+
+  return {
+    async listDraftHeroes(listOptions = {}) {
+      requireAdmin();
+      return applyListFilter(heroes, listOptions).map((row) => ({ ...row }));
+    },
+
+    async getDraftHero(id) {
+      requireAdmin();
+      return { ...heroes[findIndex(heroes, id)] };
+    },
+
+    async listDraftSkins(listOptions = {}) {
+      requireAdmin();
+      const scoped = listOptions.heroId
+        ? skins.filter((skin) => skin.heroId === listOptions.heroId)
+        : skins;
+      return applyListFilter(scoped, listOptions).map((row) => ({ ...row }));
+    },
+
+    async getDraftSkin(id) {
+      requireAdmin();
+      return { ...skins[findIndex(skins, id)] };
+    },
+
+    async listDraftAchievements(listOptions = {}) {
+      requireAdmin();
+      return applyListFilter(achievements, listOptions).map((row) => ({
+        ...row,
+      }));
+    },
+
+    async listDraftTimelineEntries(listOptions = {}) {
+      requireAdmin();
+      return applyListFilter(timelineEntries, listOptions).map((row) => ({
+        ...row,
+      }));
+    },
+
+    async createDraftHero(input: HeroInput) {
+      requireAdmin();
+      const validated = validateHeroInput(input);
+      if (!validated.ok) {
+        throw new ContentServiceError("VALIDATION_FAILED", {
+          issues: validated.issues,
+        });
+      }
+      assertUniqueSlug(heroes, validated.value.slug);
+      const hero: DraftHero = {
+        id: nextId("hero"),
+        ...validated.value,
+        publicationState: "draft",
+        archivedAt: null,
+        createdAt: nowIso(),
+        updatedAt: nowIso(),
+      };
+      heroes.push(hero);
+      return { ...hero };
+    },
+
+    async updateDraftHero(id, input: Partial<HeroInput>) {
+      requireAdmin();
+      const validated = validateHeroInput(input);
+      if (!validated.ok) {
+        throw new ContentServiceError("VALIDATION_FAILED", {
+          issues: validated.issues,
+        });
+      }
+      const index = findIndex(heroes, id);
+      assertUniqueSlug(heroes, validated.value.slug, id);
+      const updated: DraftHero = {
+        ...heroes[index],
+        ...validated.value,
+        updatedAt: nowIso(),
+      };
+      heroes[index] = updated;
+      return { ...updated };
+    },
+
+    async deleteDraftHero(id) {
+      requireAdmin();
+      heroes.splice(findIndex(heroes, id), 1);
+    },
+
+    async createDraftSkin(input: SkinInput) {
+      requireAdmin();
+      const validated = validateSkinInput(input);
+      if (!validated.ok) {
+        throw new ContentServiceError("VALIDATION_FAILED", {
+          issues: validated.issues,
+        });
+      }
+      assertUniqueSlug(skins, validated.value.slug);
+      assertHeroExists(validated.value.heroId);
+      const skin: DraftSkin = {
+        id: nextId("skin"),
+        ...validated.value,
+        publicationState: "draft",
+        archivedAt: null,
+        createdAt: nowIso(),
+        updatedAt: nowIso(),
+      };
+      skins.push(skin);
+      return { ...skin };
+    },
+
+    async updateDraftSkin(id, input: Partial<SkinInput>) {
+      requireAdmin();
+      const validated = validateSkinInput(input);
+      if (!validated.ok) {
+        throw new ContentServiceError("VALIDATION_FAILED", {
+          issues: validated.issues,
+        });
+      }
+      const index = findIndex(skins, id);
+      assertUniqueSlug(skins, validated.value.slug, id);
+      assertHeroExists(validated.value.heroId);
+      const updated: DraftSkin = {
+        ...skins[index],
+        ...validated.value,
+        updatedAt: nowIso(),
+      };
+      skins[index] = updated;
+      return { ...updated };
+    },
+
+    async deleteDraftSkin(id) {
+      requireAdmin();
+      skins.splice(findIndex(skins, id), 1);
+    },
+
+    async createDraftTimelineEntry(input: TimelineEntryInput) {
+      requireAdmin();
+      const validated = validateTimelineEntryInput(input);
+      if (!validated.ok) {
+        throw new ContentServiceError("VALIDATION_FAILED", {
+          issues: validated.issues,
+        });
+      }
+      const entry: DraftTimelineEntry = {
+        id: nextId("timeline"),
+        ...validated.value,
+        publicationState: "draft",
+        archivedAt: null,
+        createdAt: nowIso(),
+        updatedAt: nowIso(),
+      };
+      timelineEntries.push(entry);
+      return { ...entry };
+    },
+
+    async updateDraftTimelineEntry(id, input: Partial<TimelineEntryInput>) {
+      requireAdmin();
+      const validated = validateTimelineEntryInput(input);
+      if (!validated.ok) {
+        throw new ContentServiceError("VALIDATION_FAILED", {
+          issues: validated.issues,
+        });
+      }
+      const index = findIndex(timelineEntries, id);
+      const updated: DraftTimelineEntry = {
+        ...timelineEntries[index],
+        ...validated.value,
+        updatedAt: nowIso(),
+      };
+      timelineEntries[index] = updated;
+      return { ...updated };
+    },
+
+    async deleteDraftTimelineEntry(id) {
+      requireAdmin();
+      timelineEntries.splice(findIndex(timelineEntries, id), 1);
+    },
+
+    async transitionDraftState(
+      resource: DraftResource,
+      id: string,
+      transition
+    ) {
+      requireAdmin();
+      const rows: Array<{
+        id: string;
+        publicationState: DraftState;
+        archivedAt: string | null;
+        updatedAt: string;
+      }> =
+        resource === "heroes"
+          ? heroes
+          : resource === "skins"
+            ? skins
+            : resource === "achievements"
+              ? achievements
+              : timelineEntries;
+      const index = findIndex(rows, id);
+      const current = rows[index];
+      const next = resolveDraftTransition(current.publicationState, transition);
+      if (next === null) {
+        throw new ContentServiceError("INVALID_TRANSITION", {
+          message: `Cannot ${transition} a ${current.publicationState} record.`,
+        });
+      }
+      current.publicationState = next;
+      current.archivedAt = next === "archived" ? nowIso() : null;
+      current.updatedAt = nowIso();
+    },
+
+    async getActiveRelease(): Promise<ActiveRelease | null> {
+      requirePublicConfigured();
+      return publishedRelease ? { ...publishedRelease.release } : null;
+    },
+
+    async getPublishedRelease(): Promise<PublishedRelease> {
+      requirePublicConfigured();
+      if (!publishedRelease) {
+        throw new ContentServiceError("NO_PUBLISHED_RELEASE");
+      }
+      return {
+        release: { ...publishedRelease.release },
+        heroes: publishedRelease.heroes.map((row) => ({ ...row })),
+        skins: publishedRelease.skins.map((row) => ({ ...row })),
+        achievements: publishedRelease.achievements.map((row) => ({ ...row })),
+        timelineEntries: publishedRelease.timelineEntries.map((row) => ({
+          ...row,
+        })),
+      };
+    },
+  };
+}

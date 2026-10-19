@@ -1,65 +1,72 @@
+import { cache } from "react";
+
+import { readSupabaseConfig } from "./supabase/config";
+import { createSupabaseServerClient } from "./supabase/server";
+
 /**
- * Database-level authorization helpers for the MLBB Showcase.
+ * Authorization helper for the private dashboard (task 02-01).
  *
- * These functions are server-side only and rely on Supabase's
- * server-side capabilities. They must never be called from client
- * components.
+ * The single source of truth for "is this request the configured admin?":
  *
- * Key design: is_admin() is a PostgreSQL SECURITY DEFINER function that
- * fails closed. It returns true ONLY when auth.uid() matches the single
- * admin_user_id configured in public.admin_identity. Until an operator
- * configures the mapping (task 02-01 step), is_admin() is false for everyone.
- */
-
-// Placeholder: in production, isAdminUser would call public.is_admin()
-// via the Supabase Admin SDK or a direct RPC call from an edge function
-// or server action with the service_role cookie/header.
-//
-// Example (via Supabase rpc):
-//   const { data } = await supabase.rpc("is_admin");
-// Example (via service_role):
-//   const { data } = await supabaseAdmin.rpc("is_admin");
-
-/**
- * Checks whether the given user ID is the single configured admin.
+ *   1. If Supabase is not configured, deny (fail closed).
+ *   2. Resolve the *verified* session with `auth.getUser()`. Unlike
+ *      `getSession()`, this revalidates the token with the Auth server, so a
+ *      forged or expired cookie is treated as "no session".
+ *   3. Ask the database `public.is_admin()` predicate (SECURITY DEFINER,
+ *      `search_path = ''`, fails closed): it returns true only when the verified
+ *      `auth.uid()` matches the single `public.admin_identity.admin_user_id`.
+ *      EXECUTE is granted to `authenticated` only, which is why the session is
+ *      resolved before the RPC is called.
  *
- * Returns false until the admin_identity mapping is configured.
- * In a full implementation, this queries the database directly.
+ * `public.admin_identity.admin_user_id` is NULL until an operator maps the
+ * admin account, so `is_admin()` is false for everyone until that documented
+ * setup step is performed. That is intended, not a defect.
+ *
+ * The wrap in React's `cache()` deduplicates the check within a single render
+ * pass, so the layout and each page can both call it at no extra cost.
  */
-export function isAdminUser(): boolean {
-  return false;
-}
+
+const resolveAdminAccess = cache(async (): Promise<boolean> => {
+  if (!readSupabaseConfig(process.env)) {
+    // No connection details: nothing can be verified, so deny without touching
+    // the network.
+    return false;
+  }
+
+  // `createSupabaseServerClient` reads the request cookies. That call is
+  // deliberately kept *outside* the try/catch below: during a static
+  // prerender, reading a request-time API throws a framework-controlled error
+  // that Next.js uses to switch the route to per-request rendering. Swallowing
+  // it would bake the current result in at build time. `requireAdmin` calls
+  // `connection()` first, so in practice this already runs per request.
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) {
+    return false;
+  }
+
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return false;
+    }
+
+    const { data, error } = await supabase.rpc("is_admin");
+
+    return !error && data === true;
+  } catch {
+    // Network failure, malformed token, or RPC error: deny. An authorization
+    // check must never throw out of its caller.
+    return false;
+  }
+});
 
 /**
- * Verifies that the admin identity mapping is configured.
- * Returns true if admin_identity has a non-NULL admin_user_id.
+ * Resolves whether the current request is the configured single admin.
+ * Always resolves to a boolean; it never throws.
  */
-export function isAdminMappingConfigured(): boolean {
-  return false;
-}
-
-/**
- * Error messages — all generic, never reveal internal state.
- */
-export const AuthErrors = {
-  UNAUTHENTICATED: "Unauthorized",
-  FORBIDDEN: "Forbidden",
-  ADMIN_REQUIRED: "Admin privileges required",
-  CONFIGURATION_REQUIRED: "System configuration required",
-} as const;
-
-/**
- * Returns a standardized error response for unauthenticated callers.
- */
-export function authErrorResponse(
-  messageKey: keyof typeof AuthErrors
-): Response {
-  return new Response(AuthErrors[messageKey], {
-    status:
-      messageKey === "UNAUTHENTICATED"
-        ? 401
-        : messageKey === "FORBIDDEN"
-        ? 403
-        : 500,
-  });
+export function isAdminUser(): Promise<boolean> {
+  return resolveAdminAccess();
 }

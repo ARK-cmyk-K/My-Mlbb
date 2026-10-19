@@ -11,8 +11,8 @@ Use one prompt per task. IDs are stable and should be referenced in `PROJECT_STA
 - [x] `01-06` Phase 1 validation and migration documentation
 
 ## Phase 2 — Authentication and dashboard infrastructure
-- [x] `02-01` Secure single-admin authentication
-- [x] `02-02` Protected dashboard shell and sidebar
+- [ ] `02-01` Secure single-admin authentication
+- [ ] `02-02` Protected dashboard shell and sidebar
 - [ ] `02-03` Draft/published state service
 - [ ] `02-04` Supabase Storage buckets and policies
 
