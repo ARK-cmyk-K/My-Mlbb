@@ -1,0 +1,242 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens — MLBB Showcase (task 01-02)
+ *
+ * Theme switching foundation:
+ * - Dark theme is the DEFAULT (dark-first per the approved design).
+ * - The OS preference is respected via `prefers-color-scheme`.
+ * - An explicit `data-theme="light"` or `data-theme="dark"` attribute on <html>
+ *   overrides the OS preference. This is the hook the appearance studio /
+ *   theme toggle (04-01, 05-01) will use; nothing needs it yet.
+ *
+ * Rules for components:
+ * - Use ONLY the semantic tokens below via Tailwind utilities
+ *   (bg-background, text-muted, border, text-accent-gold, ...).
+ * - Never hard-code hex colors in components, and prefer tokens over `dark:`
+ *   variants so both themes stay correct automatically.
+ * - Statistics/numbers: use Tailwind's built-in `tabular-nums` utility
+ *   (Inter ships tabular figures).
+ * - Framer Motion work (later tasks) must respect reduced motion via
+ *   `useReducedMotion`; the global CSS fallback is defined at the bottom.
+ */
+
+/* ---------------------------------- */
+/* Dark theme (default)               */
+/* ---------------------------------- */
+:root {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --background: #070a12;
+  --surface: #0d1220;
+  --surface-raised: #151c30;
+
+  /* Text */
+  --foreground: #e8ecf6;
+  --muted-foreground: #97a3bf;
+
+  /* Lines and focus */
+  --border: #1f2941;
+  --border-strong: #33405f;
+  --focus: #8ea2ff;
+
+  /* Brand accents */
+  --primary: #6d4dff;
+  --primary-fg: #ffffff;
+  --primary-soft: #1b1440;
+  --secondary: #f5b942;
+  --secondary-fg: #1a1206;
+  --secondary-soft: #2b2210;
+
+  /* Rarity / role accents */
+  --accent-gold: #f1c453;
+  --accent-gold-soft: #2a2210;
+  --accent-gold-text: #f8d477;
+  --accent-purple: #a855f7;
+  --accent-purple-soft: #241636;
+  --accent-purple-text: #c691f9;
+  --accent-blue: #3b82f6;
+  --accent-blue-soft: #101f3a;
+  --accent-blue-text: #7ab0fb;
+  --accent-emerald: #10b981;
+  --accent-emerald-soft: #0a2a20;
+  --accent-emerald-text: #4fdcab;
+}
+
+/* ---------------------------------- */
+/* Light theme — OS preference       */
+/* ---------------------------------- */
+/* NOTE: the light block below is duplicated on purpose (CSS cannot share
+   declarations across a media query and a selector). Keep both in sync. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+
+    /* Surfaces */
+    --background: #f6f7fb;
+    --surface: #ffffff;
+    --surface-raised: #ffffff;
+
+    /* Text */
+    --foreground: #10141f;
+    --muted-foreground: #56617a;
+
+    /* Lines and focus */
+    --border: #e1e5f0;
+    --border-strong: #aab3c8;
+    --focus: #4f46e5;
+
+    /* Brand accents */
+    --primary: #4f46e5;
+    --primary-fg: #ffffff;
+    --primary-soft: #ece9fd;
+    --secondary: #a16207;
+    --secondary-fg: #ffffff;
+    --secondary-soft: #fdf3d8;
+
+    /* Rarity / role accents */
+    --accent-gold: #a16207;
+    --accent-gold-soft: #fef3c7;
+    --accent-gold-text: #854d0e;
+    --accent-purple: #7e22ce;
+    --accent-purple-soft: #f3e8ff;
+    --accent-purple-text: #6b21a8;
+    --accent-blue: #1d4ed8;
+    --accent-blue-soft: #dbeafe;
+    --accent-blue-text: #1e40af;
+    --accent-emerald: #047857;
+    --accent-emerald-soft: #d1fae5;
+    --accent-emerald-text: #065f46;
+  }
+}
+
+/* ---------------------------------- */
+/* Light theme — explicit override   */
+/* ---------------------------------- */
+/* Keep in sync with the @media block above. */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  /* Surfaces */
+  --background: #f6f7fb;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+
+  /* Text */
+  --foreground: #10141f;
+  --muted-foreground: #56617a;
+
+  /* Lines and focus */
+  --border: #e1e5f0;
+  --border-strong: #aab3c8;
+  --focus: #4f46e5;
+
+  /* Brand accents */
+  --primary: #4f46e5;
+  --primary-fg: #ffffff;
+  --primary-soft: #ece9fd;
+  --secondary: #a16207;
+  --secondary-fg: #ffffff;
+  --secondary-soft: #fdf3d8;
+
+  /* Rarity / role accents */
+  --accent-gold: #a16207;
+  --accent-gold-soft: #fef3c7;
+  --accent-gold-text: #854d0e;
+  --accent-purple: #7e22ce;
+  --accent-purple-soft: #f3e8ff;
+  --accent-purple-text: #6b21a8;
+  --accent-blue: #1d4ed8;
+  --accent-blue-soft: #dbeafe;
+  --accent-blue-text: #1e40af;
+  --accent-emerald: #047857;
+  --accent-emerald-soft: #d1fae5;
+  --accent-emerald-text: #065f46;
+}
+
+/* Explicit dark override (only needed to pin dark when the OS is light). */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* ---------------------------------- */
+/* Tailwind theme mapping            */
+/* ---------------------------------- */
+@theme inline {
+  /* Typography: --font-display for headings (geometric), body defaults to Inter */
+  --font-sans: var(--font-body);
+  --font-display: var(--font-heading);
+
+  /* Semantic colors -> utilities like bg-background, text-muted, border */
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-focus: var(--focus);
+  --color-primary: var(--primary);
+  --color-primary-fg: var(--primary-fg);
+  --color-primary-soft: var(--primary-soft);
+  --color-secondary: var(--secondary);
+  --color-secondary-fg: var(--secondary-fg);
+  --color-secondary-soft: var(--secondary-soft);
+
+  /* Rarity / role accents */
+  --color-accent-gold: var(--accent-gold);
+  --color-accent-gold-soft: var(--accent-gold-soft);
+  --color-accent-gold-text: var(--accent-gold-text);
+  --color-accent-purple: var(--accent-purple);
+  --color-accent-purple-soft: var(--accent-purple-soft);
+  --color-accent-purple-text: var(--accent-purple-text);
+  --color-accent-blue: var(--accent-blue);
+  --color-accent-blue-soft: var(--accent-blue-soft);
+  --color-accent-blue-text: var(--accent-blue-text);
+  --color-accent-emerald: var(--accent-emerald);
+  --color-accent-emerald-soft: var(--accent-emerald-soft);
+  --color-accent-emerald-text: var(--accent-emerald-text);
+}
+
+@layer base {
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-body);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+    text-wrap: balance;
+  }
+
+  /* Accessible focus indicator for keyboard users across the whole app. */
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--primary);
+    color: var(--primary-fg);
+  }
+}
+
+/* Reduced-motion defaults. Motion libraries (Framer Motion) must additionally
+   honor prefers-reduced-motion via their own hooks in later tasks. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
