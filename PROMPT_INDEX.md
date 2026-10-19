@@ -7,12 +7,12 @@ Use one prompt per task. IDs are stable and should be referenced in `PROJECT_STA
 - [x] `01-02` Design tokens and typography
 - [x] `01-03` Core database schema migration
 - [x] `01-04` RLS, grants, and storage security foundations
-- [ ] `01-05` Published-content search RPC and indexes
-- [ ] `01-06` Phase 1 validation and migration documentation
+- [x] `01-05` Published-content search RPC and indexes
+- [x] `01-06` Phase 1 validation and migration documentation
 
 ## Phase 2 — Authentication and dashboard infrastructure
-- [ ] `02-01` Secure single-admin authentication
-- [ ] `02-02` Protected dashboard shell and sidebar
+- [x] `02-01` Secure single-admin authentication
+- [x] `02-02` Protected dashboard shell and sidebar
 - [ ] `02-03` Draft/published state service
 - [ ] `02-04` Supabase Storage buckets and policies
 
