@@ -66,7 +66,7 @@ export function HomepageSectionsEditor({ sections }: HomepageSectionsEditorProps
     setIsPending(true);
     setError(undefined);
     try {
-      await updateHomepageSectionsAction({} as any, formData);
+      await updateHomepageSectionsAction({}, formData);
     } catch (e) {
       setError("Failed to save homepage sections");
       setIsPending(false);

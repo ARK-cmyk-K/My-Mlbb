@@ -401,3 +401,172 @@ test("SeedData is re-exported for test authors", () => {
   const seed: SeedData = { heroes: [{ name: "X", slug: "x" }] };
   assert.equal(seed.heroes?.length, 1);
 });
+
+// ---- 04-05: release snapshots & diffs --------------------------------------
+
+test("getReleaseSnapshot throws NO_PUBLISHED_RELEASE when no snapshot exists", async () => {
+  const service = createInMemoryContentService({ actor: ADMIN });
+
+  await assert.rejects(service.getReleaseSnapshot("release-1"), (error) =>
+    (assertCode(error, "NO_PUBLISHED_RELEASE"), true)
+  );
+});
+
+test("getReleaseSnapshot is admin-only", async () => {
+  const service = createInMemoryContentService({
+    actor: NON_ADMIN,
+    seed: {
+      releaseSnapshots: [
+        {
+          id: "snap-1",
+          releaseId: "release-1",
+          version: 1,
+          label: "v1",
+          payload: { heroes: [] },
+          payloadFormatVersion: 1,
+          checksumSha256: "abc",
+          createdAt: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+    },
+  });
+
+  await assert.rejects(service.getReleaseSnapshot("release-1"), (error) =>
+    (assertCode(error, "UNAUTHORIZED"), true)
+  );
+});
+
+test("getReleaseSnapshot returns the seeded snapshot", async () => {
+  const service = createInMemoryContentService({
+    actor: ADMIN,
+    seed: {
+      releaseSnapshots: [
+        {
+          id: "snap-1",
+          releaseId: "release-1",
+          version: 1,
+          label: "v1",
+          payload: { heroes: [] },
+          payloadFormatVersion: 1,
+          checksumSha256: "abc",
+          createdAt: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+    },
+  });
+
+  const snap = await service.getReleaseSnapshot("release-1");
+  assert.equal(snap.id, "snap-1");
+  assert.equal(snap.releaseId, "release-1");
+  assert.equal(snap.version, 1);
+  assert.equal(snap.label, "v1");
+});
+
+test("computeReleaseDiff throws NO_PUBLISHED_RELEASE when no snapshot exists", async () => {
+  const service = createInMemoryContentService({ actor: ADMIN });
+
+  await assert.rejects(service.computeReleaseDiff("release-1"), (error) =>
+    (assertCode(error, "NO_PUBLISHED_RELEASE"), true)
+  );
+});
+
+test("computeReleaseDiff is admin-only", async () => {
+  const service = createInMemoryContentService({
+    actor: NON_ADMIN,
+    seed: {
+      releaseSnapshots: [
+        {
+          id: "snap-1",
+          releaseId: "release-1",
+          version: 1,
+          label: "v1",
+          payload: { heroes: [] },
+          payloadFormatVersion: 1,
+          checksumSha256: "abc",
+          createdAt: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+    },
+  });
+
+  await assert.rejects(service.computeReleaseDiff("release-1"), (error) =>
+    (assertCode(error, "UNAUTHORIZED"), true)
+  );
+});
+
+test("computeReleaseDiff detects added heroes", async () => {
+  const service = createInMemoryContentService({
+    actor: ADMIN,
+    seed: {
+      heroes: [{ id: "hero-1", name: "Gusion", slug: "gusion" }],
+      releaseSnapshots: [
+        {
+          id: "snap-1",
+          releaseId: "release-1",
+          version: 1,
+          label: "v1",
+          payload: { heroes: [] },
+          payloadFormatVersion: 1,
+          checksumSha256: "abc",
+          createdAt: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+    },
+  });
+
+  const diff = await service.computeReleaseDiff("release-1");
+  assert.equal(diff.releaseId, "release-1");
+  assert.ok(diff.drafts.heroes.some((e) => e.kind === "added"));
+});
+
+test("computeReleaseDiff detects removed heroes", async () => {
+  const service = createInMemoryContentService({
+    actor: ADMIN,
+    seed: {
+      heroes: [],
+      releaseSnapshots: [
+        {
+          id: "snap-1",
+          releaseId: "release-1",
+          version: 1,
+          label: "v1",
+          payload: {
+            heroes: [{ id: "hero-1", name: "Gusion", slug: "gusion" }],
+          },
+          payloadFormatVersion: 1,
+          checksumSha256: "abc",
+          createdAt: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+    },
+  });
+
+  const diff = await service.computeReleaseDiff("release-1");
+  assert.ok(diff.drafts.heroes.some((e) => e.kind === "removed"));
+});
+
+test("computeReleaseDiff detects changed heroes", async () => {
+  const service = createInMemoryContentService({
+    actor: ADMIN,
+    seed: {
+      heroes: [{ id: "hero-1", name: "Gusion", slug: "gusion" }],
+      releaseSnapshots: [
+        {
+          id: "snap-1",
+          releaseId: "release-1",
+          version: 1,
+          label: "v1",
+          payload: {
+            heroes: [{ id: "hero-1", name: "Old Name", slug: "gusion" }],
+          },
+          payloadFormatVersion: 1,
+          checksumSha256: "abc",
+          createdAt: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+    },
+  });
+
+  const diff = await service.computeReleaseDiff("release-1");
+  assert.ok(diff.drafts.heroes.some((e) => e.kind === "changed"));
+});

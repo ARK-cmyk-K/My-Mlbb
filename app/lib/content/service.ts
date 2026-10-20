@@ -1,6 +1,7 @@
 import "server-only";
 
 import { isAdminUser } from "../db.ts";
+import type { ReleaseSnapshot } from "./contracts.ts";
 
 import {
   asPostgrestClient,
@@ -17,6 +18,7 @@ import type {
   PublishedAchievement,
   PublishedRelease,
 } from "./contracts.ts";
+import type { DiffEntry, ReleaseDiff } from "./contracts.ts";
 import { ContentServiceError } from "./errors.ts";
 import {
   ACTIVE_RELEASE_COLUMNS,
@@ -397,7 +399,483 @@ export function createSupabaseContentService(): ContentService {
       // state explicitly (and never fall back to draft data).
       return [];
     },
-  };
+
+    /** Fetch the most recent release snapshot for a given release, or throw. */
+    async getReleaseSnapshot(releaseId: string): Promise<ReleaseSnapshot> {
+      const db = await requireAdminDb();
+      const result = await db
+        .from("release_snapshots")
+        .select("*")
+        .eq("release_id", releaseId)
+        .order("version", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      throwIfError(result.error);
+      if (result.data === null) {
+        throw new ContentServiceError("NO_PUBLISHED_RELEASE", {
+          message: `No release snapshot found for release "${releaseId}".`,
+        });
+      }
+      const row = asRow(result.data);
+      return {
+        id: String(row.id),
+        releaseId: String(row.release_id),
+        version: Number(row.version),
+        label: row.label === null ? null : String(row.label),
+        payload: row.payload,
+        payloadFormatVersion: Number(row.payload_format_version),
+        checksumSha256: String(row.checksum_sha256),
+        createdAt: String(row.created_at),
+      };
+    },
+
+    /**
+     * Compute a side-by-side diff between the current draft state and a
+     * published release snapshot, returning field-level differences for
+     * supported content and appearance fields.
+     *
+     * The diff is based on structural comparison of the PublishedRelease
+     * snapshot payload against the current draft rows.
+     */
+    async computeReleaseDiff(releaseId: string): Promise<ReleaseDiff> {
+      const db = await requireAdminDb();
+
+      // Fetch the snapshot
+      const snapshot = await this.getReleaseSnapshot(releaseId);
+
+      // Fetch current draft state for each resource
+      const [draftHeroes, draftSkins, draftAchievements, draftTimelineEntries] = await Promise.all([
+        db.from("heroes").select(DRAFT_HERO_COLUMNS).eq("publication_state", "draft"),
+        db.from("skins").select(DRAFT_SKIN_COLUMNS).eq("publication_state", "draft"),
+        db.from("achievements").select(DRAFT_ACHIEVEMENT_COLUMNS).eq("publication_state", "draft"),
+        db.from("timeline_entries").select(DRAFT_TIMELINE_COLUMNS).eq("publication_state", "draft"),
+      ]);
+
+      const heroRows = rowsOf(draftHeroes);
+      const skinRows = rowsOf(draftSkins);
+      const achievementRows = rowsOf(draftAchievements);
+      const timelineRows = rowsOf(draftTimelineEntries);
+
+      // Build diff entries for each resource type
+      const self = this as any;
+      const heroDiffs = self.computeHeroDiffs(heroRows, snapshot);
+      const skinDiffs = self.computeSkinDiffs(skinRows, snapshot);
+      const achievementDiffs = self.computeAchievementDiffs(achievementRows, snapshot);
+      const timelineDiffs = self.computeTimelineDiffs(timelineRows, snapshot);
+
+      // For appearance settings, we have a singleton row
+      const appearanceDiffs = self.computeAppearanceDiff(db, snapshot);
+
+      return {
+        releaseId,
+        snapshot,
+        drafts: {
+          heroes: heroDiffs,
+          skins: skinDiffs,
+          achievements: achievementDiffs,
+          timelineEntries: timelineDiffs,
+          appearanceSettings: appearanceDiffs,
+        },
+      };
+    },
+
+    /**
+     * Compute hero-level diff entries comparing draft rows against the snapshot payload.
+     */
+    computeHeroDiffs(
+      draftHeroes: Array<Record<string, unknown>>,
+      snapshot: ReleaseSnapshot
+    ): DiffEntry[] {
+      const snapshotHeroes = (snapshot.payload as any)?.heroes ?? [];
+      const result: DiffEntry[] = [];
+
+      // Heroes in snapshot but not in draft (or vice versa) are "changed/removed/added"
+      const draftIds = new Set(draftHeroes.map((h) => String(h.id)));
+      const snapshotIds = new Set(snapshotHeroes.map((s: any) => s.id));
+
+      // Check for removed heroes
+      for (const id of snapshotIds as Set<string>) {
+        if (!draftIds.has(id)) {
+          result.push({
+            path: "heroes",
+            kind: "removed",
+            old: snapshotHeroes.find((s: any) => s.id === id),
+          });
+        }
+      }
+
+      // Check for added or changed heroes
+      for (const draftHero of draftHeroes) {
+        const id = String(draftHero.id);
+        const snapshotHero = snapshotHeroes.find((s: any) => s.id === id);
+        if (!snapshotHero) {
+          result.push({
+            path: "heroes",
+            kind: "added",
+            new: draftHero,
+          });
+          continue;
+        }
+
+        // Compare fields
+        const changes: Array<{ field: string; old: unknown; new: unknown }> = [];
+
+        const fieldComparisons: [string, keyof any, keyof any][] = [
+          ["name", "name", "name"],
+          ["slug", "slug", "slug"],
+          ["primaryRole", "primary_role", "primary_role"],
+          ["secondaryRole", "secondary_role", "secondary_role"],
+          ["specialty", "specialty", "specialty"],
+          ["masteryLevel", "mastery_level", "mastery_level"],
+          ["totalMatches", "total_matches", "total_matches"],
+          ["winRate", "win_rate", "win_rate"],
+          ["isSignature", "is_signature", "is_signature"],
+          ["isFavorite", "is_favorite", "is_favorite"],
+        ];
+
+        for (const [field, draftKey, snapshotKey] of fieldComparisons) {
+          const draftVal = (draftHero as any)[draftKey];
+          const snapshotVal = (snapshotHero as any)[snapshotKey];
+          if (String(draftVal) !== String(snapshotVal)) {
+            changes.push({ field, old: snapshotVal, new: draftVal });
+          }
+        }
+
+        if (changes.length > 0) {
+          result.push({
+            path: "heroes",
+            kind: "changed",
+            old: snapshotHero,
+            new: { ...draftHero, changes },
+          });
+        } else {
+          result.push({
+            path: "heroes",
+            kind: "unchanged",
+          });
+        }
+      }
+
+      return result;
+    },
+
+    /**
+     * Compute skin-level diff entries comparing draft rows against the snapshot payload.
+     */
+    computeSkinDiffs(
+      draftSkins: Array<Record<string, unknown>>,
+      snapshot: ReleaseSnapshot
+    ): DiffEntry[] {
+      const snapshotSkins = (snapshot.payload as any)?.skins ?? [];
+      const result: DiffEntry[] = [];
+
+      const draftSkinIds = new Set(draftSkins.map((s) => String(s.id)));
+      const snapshotSkinIds = new Set(snapshotSkins.map((s: any) => s.id));
+
+      // Check for removed skins
+      for (const id of snapshotSkinIds as Set<string>) {
+        if (!draftSkinIds.has(id)) {
+          result.push({
+            path: "skins",
+            kind: "removed",
+            old: snapshotSkins.find((s: any) => s.id === id),
+          });
+        }
+      }
+
+      // Check for added or changed skins
+      for (const draftSkin of draftSkins) {
+        const id = String(draftSkin.id);
+        const snapshotSkin = snapshotSkins.find((s: any) => s.id === id);
+        if (!snapshotSkin) {
+          result.push({
+            path: "skins",
+            kind: "added",
+            new: draftSkin,
+          });
+          continue;
+        }
+
+        const changes: Array<{ field: string; old: unknown; new: unknown }> = [];
+
+        const fieldComparisons: [string, keyof any, keyof any][] = [
+          ["name", "name", "name"],
+          ["slug", "slug", "slug"],
+          ["heroId", "hero_id", "hero_id"],
+          ["rarity", "rarity", "rarity"],
+          ["series", "series", "series"],
+          ["splashArtMediaId", "splash_art_media_id", "splash_art_media_id"],
+          ["variant", "variant", "variant"],
+          ["acquisitionDate", "acquisition_date", "acquisition_date"],
+          ["acquisitionMilestone", "acquisition_milestone", "acquisition_milestone"],
+          ["isOwned", "is_owned", "is_owned"],
+          ["isFavorite", "is_favorite", "is_favorite"],
+        ];
+
+        for (const [field, draftKey, snapshotKey] of fieldComparisons) {
+          const draftVal = (draftSkin as any)[draftKey];
+          const snapshotVal = (snapshotSkin as any)[snapshotKey];
+          if (String(draftVal) !== String(snapshotVal)) {
+            changes.push({ field, old: snapshotVal, new: draftVal });
+          }
+        }
+
+        if (changes.length > 0) {
+          result.push({
+            path: "skins",
+            kind: "changed",
+            old: snapshotSkin,
+            new: { ...draftSkin, changes },
+          });
+        } else {
+          result.push({
+            path: "skins",
+            kind: "unchanged",
+          });
+        }
+      }
+
+      return result;
+    },
+
+    /**
+     * Compute achievement-level diff entries comparing draft rows against the snapshot payload.
+     */
+    computeAchievementDiffs(
+      draftAchievements: Array<Record<string, unknown>>,
+      snapshot: ReleaseSnapshot
+    ): DiffEntry[] {
+      const snapshotAchievements = (snapshot.payload as any)?.achievements ?? [];
+      const result: DiffEntry[] = [];
+
+      const draftAchIdSet = new Set(
+        draftAchievements.map((a) => String(a.id))
+      );
+      const snapshotAchIdSet = new Set(
+        snapshotAchievements.map((a: any) => a.id)
+      );
+
+      // Check for removed achievements
+      for (const id of snapshotAchIdSet as Set<string>) {
+        if (!draftAchIdSet.has(id)) {
+          result.push({
+            path: "achievements",
+            kind: "removed",
+            old: snapshotAchievements.find((a: any) => a.id === id),
+          });
+        }
+      }
+
+      // Check for added or changed achievements
+      for (const draftAch of draftAchievements) {
+        const id = String(draftAch.id);
+        const snapshotAch = snapshotAchievements.find((a: any) => a.id === id);
+        if (!snapshotAch) {
+          result.push({
+            path: "achievements",
+            kind: "added",
+            new: draftAch,
+          });
+          continue;
+        }
+
+        const changes: Array<{ field: string; old: unknown; new: unknown }> = [];
+
+        const fieldComparisons: [string, keyof any, keyof any][] = [
+          ["title", "title", "title"],
+          ["description", "description", "description"],
+          ["category", "category", "category"],
+          ["earnedOn", "earned_on", "earned_on"],
+        ];
+
+        for (const [field, draftKey, snapshotKey] of fieldComparisons) {
+          const draftVal = (draftAch as any)[draftKey];
+          const snapshotVal = (snapshotAch as any)[snapshotKey];
+          if (String(draftVal) !== String(snapshotVal)) {
+            changes.push({ field, old: snapshotVal, new: draftVal });
+          }
+        }
+
+        if (changes.length > 0) {
+          result.push({
+            path: "achievements",
+            kind: "changed",
+            old: snapshotAch,
+            new: { ...draftAch, changes },
+          });
+        } else {
+          result.push({
+            path: "achievements",
+            kind: "unchanged",
+          });
+        }
+      }
+
+      return result;
+    },
+
+    /**
+     * Compute timeline entry-level diff entries comparing draft rows against the snapshot payload.
+     */
+    computeTimelineDiffs(
+      draftTimelineEntries: Array<Record<string, unknown>>,
+      snapshot: ReleaseSnapshot
+    ): DiffEntry[] {
+      const snapshotTimeline = (snapshot.payload as any)?.timeline_entries ?? [];
+      const result: DiffEntry[] = [];
+
+      const draftTimIdSet = new Set(
+        draftTimelineEntries.map((t) => String(t.id))
+      );
+      const snapshotTimIdSet = new Set(
+        snapshotTimeline.map((t: any) => t.id)
+      );
+
+      // Check for removed timeline entries
+      for (const id of snapshotTimIdSet as Set<string>) {
+        if (!draftTimIdSet.has(id)) {
+          result.push({
+            path: "timeline_entries",
+            kind: "removed",
+            old: snapshotTimeline.find((t: any) => t.id === id),
+          });
+        }
+      }
+
+      // Check for added or changed timeline entries
+      for (const draftTim of draftTimelineEntries) {
+        const id = String(draftTim.id);
+        const snapshotTim = snapshotTimeline.find((t: any) => t.id === id);
+        if (!snapshotTim) {
+          result.push({
+            path: "timeline_entries",
+            kind: "added",
+            new: draftTim,
+          });
+          continue;
+        }
+
+        const changes: Array<{ field: string; old: unknown; new: unknown }> = [];
+
+        const fieldComparisons: [string, keyof any, keyof any][] = [
+          ["title", "title", "title"],
+          ["body", "body", "body"],
+          ["kind", "kind", "kind"],
+          ["occurredOn", "occurred_on", "occurred_on"],
+          ["isHighlight", "is_highlight", "is_highlight"],
+        ];
+
+        for (const [field, draftKey, snapshotKey] of fieldComparisons) {
+          const draftVal = (draftTim as any)[draftKey];
+          const snapshotVal = (snapshotTim as any)[snapshotKey];
+          if (String(draftVal) !== String(snapshotVal)) {
+            changes.push({ field, old: snapshotVal, new: draftVal });
+          }
+        }
+
+        if (changes.length > 0) {
+          result.push({
+            path: "timeline_entries",
+            kind: "changed",
+            old: snapshotTim,
+            new: { ...draftTim, changes },
+          });
+        } else {
+          result.push({
+            path: "timeline_entries",
+            kind: "unchanged",
+          });
+        }
+      }
+
+      return result;
+    },
+
+    /**
+     * Compute appearance settings diff comparing the draft singleton against the snapshot payload.
+     */
+    async computeAppearanceDiff(
+      db: PostgrestLike,
+      snapshot: ReleaseSnapshot
+    ): Promise<DiffEntry[]> {
+      const snapshotPayload = snapshot.payload as any;
+      const result: DiffEntry[] = [];
+
+      // Fetch current draft appearance settings
+      const result2 = await db
+        .from("appearance_settings")
+        .select(DRAFT_APPEARANCE_SETTINGS_COLUMNS)
+        .eq("id", 1)
+        .maybeSingle();
+      throwIfError(result2.error);
+      const draftAppearance = result2.data ? asRow(result2.data) : null;
+
+      if (!draftAppearance && !snapshotPayload?.appearance_settings) {
+        result.push({
+          path: "appearance_settings",
+          kind: "unchanged",
+        });
+        return result;
+      }
+
+      const snapshotAppearance = snapshotPayload?.appearance_settings;
+
+      if (!draftAppearance) {
+        result.push({
+          path: "appearance_settings",
+          kind: "added",
+          new: snapshotAppearance,
+        });
+        return result;
+      }
+
+      if (!snapshotAppearance) {
+        result.push({
+          path: "appearance_settings",
+          kind: "removed",
+          old: draftAppearance,
+        });
+        return result;
+      }
+
+        // Compare fields
+        const changes: Array<{ field: string; old: unknown; new: unknown }> = [];
+
+        const fieldComparisons: [string, keyof any, keyof any][] = [
+          ["themePreset", "theme_preset", "theme_preset"],
+          ["primaryAccent", "primary_accent", "primary_accent"],
+          ["secondaryAccent", "secondary_accent", "secondary_accent"],
+          ["typographyScale", "typography_scale", "typography_scale"],
+          ["containerWidthPx", "container_width_px", "container_width_px"],
+          ["spacingScale", "spacing_scale", "spacing_scale"],
+          ["customCss", "custom_css", "custom_css"],
+        ];
+
+        for (const [field, draftKey, snapshotKey] of fieldComparisons) {
+          const draftVal = (draftAppearance as any)[draftKey];
+          const snapshotVal = (snapshotAppearance as any)[snapshotKey];
+          if (String(draftVal) !== String(snapshotVal)) {
+            changes.push({ field, old: snapshotVal, new: draftVal });
+          }
+        }
+
+        if (changes.length > 0) {
+          result.push({
+            path: "appearance_settings",
+            kind: "changed",
+            old: draftAppearance,
+            new: { ...draftAppearance, changes },
+          });
+        } else {
+          result.push({
+            path: "appearance_settings",
+            kind: "unchanged",
+          });
+        }
+
+      return result;
+    },
+  } as ContentService;
 }
 
 // ---------------------------------------------------------------------------

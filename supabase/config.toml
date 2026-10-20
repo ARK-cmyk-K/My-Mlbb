@@ -123,6 +123,11 @@ port = 54324
 
 [storage]
 enabled = true
+# Global ceiling for any single object uploaded through the Storage API. This is
+# intentionally larger than the per-bucket limits below (10MiB) so that bucket
+# caps remain the authoritative, tighter constraint and the global value only
+# needs to change if a future bucket requires a larger ceiling. The app layer
+# (app/lib/media/upload-policy.ts) also enforces a 10MiB limit independently.
 # The maximum file size allowed (e.g. "5MB", "500KB").
 file_size_limit = "50MiB"
 

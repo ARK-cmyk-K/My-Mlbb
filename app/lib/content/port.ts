@@ -9,6 +9,8 @@ import type {
   DraftTimelineEntry,
   PublishedHomepageSection,
   PublishedRelease,
+  ReleaseSnapshot,
+  ReleaseDiff,
 } from "./contracts.ts";
 import type {
   AppearanceSettingsInput,
@@ -157,6 +159,12 @@ export interface ContentService {
    * instead of guessing an order.
    */
   getPublishedHomepageSections(): Promise<PublishedHomepageSection[]>;
+
+  /** Fetch the most recent release snapshot for a given release, or throw. */
+  getReleaseSnapshot(releaseId: string): Promise<ReleaseSnapshot>;
+
+  /** Compute a diff between the current draft state and a release snapshot. */
+  computeReleaseDiff(releaseId: string): Promise<ReleaseDiff>;
 }
 
 /** The service factory shape, so callers can accept an injected double. */

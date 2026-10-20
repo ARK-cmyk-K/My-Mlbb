@@ -1,9 +1,12 @@
 import {
   issuesByPath,
+  readOptionalNumber,
   readString,
 } from "./form-utils.ts";
 import {
   SAFE_CSS_PROPERTIES,
+  THEME_PRESETS,
+  validateAppearanceSettingsInput,
   validateCustomCss,
   type AppearanceSettingsInput,
   type ThemePreset,
@@ -79,9 +82,9 @@ export function parseAppearanceForm(
     themePreset: readString(formData, "themePreset"),
     primaryAccent: readString(formData, "primaryAccent"),
     secondaryAccent: readString(formData, "secondaryAccent"),
-    typographyScale: readNumber(formData, "typographyScale"),
-    containerWidthPx: readNumber(formData, "containerWidthPx"),
-    spacingScale: readNumber(formData, "spacingScale"),
+    typographyScale: readOptionalNumber(formData, "typographyScale"),
+    containerWidthPx: readOptionalNumber(formData, "containerWidthPx"),
+    spacingScale: readOptionalNumber(formData, "spacingScale"),
   });
 
   if (!baseResult.ok) {
@@ -104,7 +107,7 @@ export function parseAppearanceForm(
   const cssResult = validateCustomCss(rawCss);
   if (!cssResult.ok) {
     // Merge the CSS validation issues with any existing issues
-    const allIssues = [...baseResult.issues, ...cssResult.issues];
+    const allIssues = [...cssResult.issues];
     return { ok: false, issues: allIssues };
   }
 

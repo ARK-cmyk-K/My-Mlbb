@@ -5,8 +5,11 @@ import type {
   DraftHero,
   DraftSkin,
   DraftState,
+  DiffEntry,
   DraftTimelineEntry,
   PublishedRelease,
+  ReleaseDiff,
+  ReleaseSnapshot,
 } from "./contracts.ts";
 import { resolveDraftTransition } from "./contracts.ts";
 import { ContentServiceError } from "./errors.ts";
@@ -64,6 +67,7 @@ export interface SeedData {
   publishedRelease?: PublishedRelease | null;
   homepageSections?: Array<Partial<any>>;
   publishedHomepageSections?: Array<Partial<any>>;
+  releaseSnapshots?: Array<Partial<ReleaseSnapshot>>;
 }
 
 const UNAUTHENTICATED_ACTOR: InMemoryActor = {
@@ -193,6 +197,9 @@ export function createInMemoryContentService(
   const achievements = (options.seed?.achievements ?? []).map(seedAchievement);
   const timelineEntries = (options.seed?.timelineEntries ?? []).map(
     seedTimelineEntry
+  );
+  const releaseSnapshots = (options.seed?.releaseSnapshots ?? []).map(
+    (seed: Partial<ReleaseSnapshot>) => seed
   );
   let appearanceSettings = seedAppearanceSettings(
     options.seed as Partial<SeedData> & {
@@ -559,6 +566,243 @@ export function createInMemoryContentService(
             typeof entry.sectionId === "string"
         )
         .map((entry: any) => ({ ...entry }));
+    },
+
+    async getReleaseSnapshot(releaseId: string): Promise<ReleaseSnapshot> {
+      requireAdmin();
+      const snapshots = releaseSnapshots;
+      const snap = snapshots.find(
+        (s: any) => (s.releaseId ?? s.release_id) === releaseId
+      );
+      if (!snap) {
+        throw new ContentServiceError("NO_PUBLISHED_RELEASE", {
+          message: `No release snapshot found for release "${releaseId}".`,
+        });
+      }
+      return {
+        id: String(snap.id),
+        releaseId: String((snap as any).releaseId ?? (snap as any).release_id),
+        version: Number(snap.version),
+        label: snap.label ?? null,
+        payload: snap.payload,
+        payloadFormatVersion: Number(
+          (snap as any).payloadFormatVersion ?? (snap as any).payload_format_version ?? 1
+        ),
+        checksumSha256: String(
+          (snap as any).checksumSha256 ?? (snap as any).checksum_sha256
+        ),
+        createdAt: String(
+          (snap as any).createdAt ?? (snap as any).created_at ?? nowIso()
+        ),
+      };
+    },
+
+    async computeReleaseDiff(releaseId: string): Promise<ReleaseDiff> {
+      requireAdmin();
+
+      const snapshot = await this.getReleaseSnapshot(releaseId);
+
+      // Use closure seed data for draft rows
+      const draftHeroes: Array<Record<string, unknown>> = heroes.map((h) => ({
+        ...h,
+      }));
+      const draftSkins: Array<Record<string, unknown>> = skins.map((s) => ({
+        ...s,
+      }));
+      const draftAchievements: Array<Record<string, unknown>> = achievements.map(
+        (a) => ({ ...a })
+      );
+      const draftTimelineEntries: Array<Record<string, unknown>> =
+        timelineEntries.map((t) => ({ ...t }));
+
+      const draftAppearanceSettings = appearanceSettings;
+
+      // Diff: compare snapshot heroes vs draft heroes by ID
+      const snapshotHeroes = (snapshot.payload as any)?.heroes ?? [];
+      const diffs: DiffEntry[] = [];
+
+      const draftHeroIds = new Set(draftHeroes.map((h) => String(h.id)));
+      const snapshotHeroIds = new Set(snapshotHeroes.map((s: any) => s.id));
+
+      // Heroes in snapshot but not in draft
+      for (const id of snapshotHeroIds as Set<string>) {
+        if (!draftHeroIds.has(id)) {
+          diffs.push({
+            path: "heroes",
+            kind: "removed",
+            old: snapshotHeroes.find((s: any) => s.id === id),
+          });
+        }
+      }
+
+      // Heroes in draft: added or changed/unchanged
+      for (const hero of draftHeroes) {
+        const id = String(hero.id);
+        const snapshotHero = snapshotHeroes.find((s: any) => s.id === id);
+        if (!snapshotHero) {
+          diffs.push({ path: "heroes", kind: "added", new: hero });
+          continue;
+        }
+        if (JSON.stringify(hero) !== JSON.stringify(snapshotHero)) {
+          diffs.push({
+            path: "heroes",
+            kind: "changed",
+            old: snapshotHero,
+            new: hero,
+          });
+        } else {
+          diffs.push({ path: "heroes", kind: "unchanged" });
+        }
+      }
+
+      // Skins diff
+      const snapshotSkins = (snapshot.payload as any)?.skins ?? [];
+      const skinDiffs: DiffEntry[] = [];
+      const draftSkinIds = new Set(draftSkins.map((s) => String(s.id)));
+      const snapshotSkinIds = new Set(snapshotSkins.map((s: any) => s.id));
+      for (const id of snapshotSkinIds as Set<string>) {
+        if (!draftSkinIds.has(id)) {
+          skinDiffs.push({
+            path: "skins",
+            kind: "removed",
+            old: snapshotSkins.find((s: any) => s.id === id),
+          });
+        }
+      }
+      for (const skin of draftSkins) {
+        const id = String(skin.id);
+        const snapshotSkin = snapshotSkins.find((s: any) => s.id === id);
+        if (!snapshotSkin) {
+          skinDiffs.push({ path: "skins", kind: "added", new: skin });
+          continue;
+        }
+        if (JSON.stringify(skin) !== JSON.stringify(snapshotSkin)) {
+          skinDiffs.push({
+            path: "skins",
+            kind: "changed",
+            old: snapshotSkin,
+            new: skin,
+          });
+        } else {
+          skinDiffs.push({ path: "skins", kind: "unchanged" });
+        }
+      }
+
+      // Achievements diff
+      const snapshotAchievements = (snapshot.payload as any)?.achievements ?? [];
+      const achievementDiffs: DiffEntry[] = [];
+      const draftAchIds = new Set(draftAchievements.map((a) => String(a.id)));
+      const snapshotAchIds = new Set(snapshotAchievements.map((a: any) => a.id));
+      for (const id of snapshotAchIds as Set<string>) {
+        if (!draftAchIds.has(id)) {
+          achievementDiffs.push({
+            path: "achievements",
+            kind: "removed",
+            old: snapshotAchievements.find((a: any) => a.id === id),
+          });
+        }
+      }
+      for (const ach of draftAchievements) {
+        const id = String(ach.id);
+        const snapshotAch = snapshotAchievements.find((a: any) => a.id === id);
+        if (!snapshotAch) {
+          achievementDiffs.push({
+            path: "achievements",
+            kind: "added",
+            new: ach,
+          });
+          continue;
+        }
+        if (JSON.stringify(ach) !== JSON.stringify(snapshotAch)) {
+          achievementDiffs.push({
+            path: "achievements",
+            kind: "changed",
+            old: snapshotAch,
+            new: ach,
+          });
+        } else {
+          achievementDiffs.push({ path: "achievements", kind: "unchanged" });
+        }
+      }
+
+      // Timeline diff
+      const snapshotTimeline = (snapshot.payload as any)?.timeline_entries ?? [];
+      const timelineDiffs: DiffEntry[] = [];
+      const draftTimIds = new Set(draftTimelineEntries.map((t) => String(t.id)));
+      const snapshotTimIds = new Set(snapshotTimeline.map((t: any) => t.id));
+      for (const id of snapshotTimIds as Set<string>) {
+        if (!draftTimIds.has(id)) {
+          timelineDiffs.push({
+            path: "timeline_entries",
+            kind: "removed",
+            old: snapshotTimeline.find((t: any) => t.id === id),
+          });
+        }
+      }
+      for (const tim of draftTimelineEntries) {
+        const id = String(tim.id);
+        const snapshotTim = snapshotTimeline.find((t: any) => t.id === id);
+        if (!snapshotTim) {
+          timelineDiffs.push({
+            path: "timeline_entries",
+            kind: "added",
+            new: tim,
+          });
+          continue;
+        }
+        if (JSON.stringify(tim) !== JSON.stringify(snapshotTim)) {
+          timelineDiffs.push({
+            path: "timeline_entries",
+            kind: "changed",
+            old: snapshotTim,
+            new: tim,
+          });
+        } else {
+          timelineDiffs.push({ path: "timeline_entries", kind: "unchanged" });
+        }
+      }
+
+      // Appearance diff
+      const snapshotAppearance = (snapshot.payload as any)?.appearance_settings ?? null;
+      const appearanceDiffs: DiffEntry[] = [];
+      if (!draftAppearanceSettings && !snapshotAppearance) {
+        appearanceDiffs.push({ path: "appearance_settings", kind: "unchanged" });
+      } else if (!draftAppearanceSettings) {
+        appearanceDiffs.push({
+          path: "appearance_settings",
+          kind: "added",
+          new: snapshotAppearance,
+        });
+      } else if (!snapshotAppearance) {
+        appearanceDiffs.push({
+          path: "appearance_settings",
+          kind: "removed",
+          old: draftAppearanceSettings,
+        });
+      } else if (
+        JSON.stringify(draftAppearanceSettings) !== JSON.stringify(snapshotAppearance)
+      ) {
+        appearanceDiffs.push({
+          path: "appearance_settings",
+          kind: "changed",
+          old: snapshotAppearance,
+          new: draftAppearanceSettings,
+        });
+      } else {
+        appearanceDiffs.push({ path: "appearance_settings", kind: "unchanged" });
+      }
+
+      return {
+        releaseId,
+        snapshot,
+        drafts: {
+          heroes: diffs,
+          skins: skinDiffs,
+          achievements: achievementDiffs,
+          timelineEntries: timelineDiffs,
+          appearanceSettings: appearanceDiffs,
+        },
+      } as ReleaseDiff;
     },
   };
 }

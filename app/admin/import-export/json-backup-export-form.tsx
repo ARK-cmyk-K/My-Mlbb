@@ -26,10 +26,10 @@ export function JsonBackupExportForm() {
       link.click();
       link.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 0);
-      setDownloaded(true);
+      window.setTimeout(() => setDownloaded(true), 0);
     }
     if (state.error) {
-      setDownloaded(false);
+      window.setTimeout(() => setDownloaded(false), 0);
     }
   }, [state, downloaded]);
 
@@ -115,7 +115,7 @@ export function JsonBackupExportForm() {
                 Include public storage URLs
               </span>
               <span className="mt-1 block text-xs text-muted">
-                Only for media in the public bucket ("showcase-public"). Draft
+                Only for media in the public bucket (&quot;showcase-public&quot;). Draft
                 objects never receive public URLs. Not included by default.
               </span>
             </span>

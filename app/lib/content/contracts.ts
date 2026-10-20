@@ -216,6 +216,43 @@ export const DRAFT_STATE_LABELS: Record<DraftState, string> = {
   published: "Published",
   archived: "Archived",
 };
+
+/** A typed release snapshot that preserves the content/configuration associated
+ * with a named version and cannot be silently edited after creation (immutable
+ * append-only history enforced by the database trigger). */
+export interface ReleaseSnapshot {
+  id: string;
+  releaseId: string;
+  version: number;
+  label: string | null;
+  payload: unknown;
+  payloadFormatVersion: number;
+  checksumSha256: string;
+  createdAt: string;
+}
+
+/** Field-level diff between a draft resource and its snapshot counterpart. */
+export type DiffPath = "heroes" | "skins" | "achievements" | "timeline_entries" | "appearance_settings";
+
+export interface DiffEntry {
+  path: DiffPath;
+  kind: "added" | "removed" | "changed" | "unchanged";
+  /** For "changed": the old and new values (where comparable). */
+  old?: unknown;
+  new?: unknown;
+}
+
+export interface ReleaseDiff {
+  releaseId: string;
+  snapshot: ReleaseSnapshot;
+  drafts: {
+    heroes: DiffEntry[];
+    skins: DiffEntry[];
+    achievements: DiffEntry[];
+    timelineEntries: DiffEntry[];
+    appearanceSettings: DiffEntry[];
+  };
+}
 /**
  * A publication transition the service controls. These are transitions of a
  * draft row's *lifecycle marker*, not the act of publishing a release (which is

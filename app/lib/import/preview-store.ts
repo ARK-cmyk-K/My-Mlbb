@@ -10,6 +10,13 @@
  * The default implementation is an in-memory store (process-local). It is
  * injectable via `MergePreviewStore` so unit tests can control creation,
  * expiry and isolation without global side effects.
+ *
+ * Deployment note (see PROJECT_REVIEW_AND_ASSESSMENT.md §6): this store is
+ * process-local and will NOT survive serverless cold starts or multi-instance
+ * deployments (e.g. Vercel serverless). For production, provide an
+ * implementation of `MergePreviewStore` backed by Redis/Upstash or a
+ * short-lived database table; the interface is intentionally storage-agnostic
+ * so swapping the backend requires no changes to the import/commit flow.
  */
 
 import type { MergePreviewPayload } from "./merge.ts";

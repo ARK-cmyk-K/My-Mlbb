@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 import { createServerClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
@@ -19,9 +21,17 @@ import { readSupabaseConfig } from "./config";
  *
  * This client uses only the public `anon` key. No service-role credential is
  * ever loaded here or exposed to the browser.
+ *
+ * Wrapped in React's `cache()` (per the 02-01/review recommendation) so that
+ * repeated calls within a single request/render pass reuse one client instead
+ * of re-reading the cookie jar and re-instantiating `@supabase/ssr`. React's
+ * cache is request-scoped, so clients are never shared across requests. The
+ * `cookies()` read stays inside the cached body but runs on the first call of
+ * the pass, preserving Next.js' dynamic-rendering signal.
  */
-export async function createSupabaseServerClient(): Promise<SupabaseClient | null> {
-  const config = readSupabaseConfig(process.env);
+export const createSupabaseServerClient = cache(
+  async (): Promise<SupabaseClient | null> => {
+    const config = readSupabaseConfig(process.env);
   if (!config) {
     return null;
   }
@@ -45,4 +55,5 @@ export async function createSupabaseServerClient(): Promise<SupabaseClient | nul
       },
     },
   });
-}
+  },
+);

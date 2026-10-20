@@ -118,7 +118,6 @@ export {
   type AppearanceSettingsInput,
   type ThemePreset,
   validateHomepageSectionOrder,
-  type HomepageSectionOrderEntry,
   type HomepageSectionOrderInput,
 } from "./validation.ts";
 export type {

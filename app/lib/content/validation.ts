@@ -489,3 +489,211 @@ export function validateHomepageSections(
 
   return issues.length === 0 ? { ok: true, value } : { ok: false, issues };
 }
+
+/** Theme presets mirrored from the `appearance_settings_theme_preset` CHECK. */
+export const THEME_PRESETS = ["dark", "light", "adaptive"] as const;
+export type ThemePreset = (typeof THEME_PRESETS)[number];
+
+/** Input shape for appearance settings (mirrors `DraftAppearanceSettings`). */
+export interface AppearanceSettingsInput {
+  themePreset: ThemePreset;
+  primaryAccent: string;
+  secondaryAccent: string;
+  typographyScale: number;
+  containerWidthPx: number;
+  spacingScale: number;
+  customCss?: string | null;
+}
+
+/** Validates and normalizes an appearance settings payload. */
+export function validateAppearanceSettingsInput(
+  input: unknown
+): ValidationResult<AppearanceSettingsInput> {
+  const issues: FieldIssue[] = [];
+  if (!isPlainObject(input)) {
+    return { ok: false, issues: [{ path: "", message: "must be an object" }] };
+  }
+
+  const themePreset = requiredEnum(
+    input.themePreset,
+    "themePreset",
+    THEME_PRESETS,
+    issues
+  );
+  const primaryAccent = requiredTrimmedString(
+    input.primaryAccent,
+    "primaryAccent",
+    7,
+    issues
+  );
+  if (primaryAccent.length > 0 && !/^#[0-9a-fA-F]{6}$/.test(primaryAccent)) {
+    issues.push({ path: "primaryAccent", message: "must be a 6-digit hex color" });
+  }
+  const secondaryAccent = requiredTrimmedString(
+    input.secondaryAccent,
+    "secondaryAccent",
+    7,
+    issues
+  );
+  if (secondaryAccent.length > 0 && !/^#[0-9a-fA-F]{6}$/.test(secondaryAccent)) {
+    issues.push({ path: "secondaryAccent", message: "must be a 6-digit hex color" });
+  }
+  const typographyScale = optionalNumberInRange(
+    input.typographyScale,
+    "typographyScale",
+    0.75,
+    1.5,
+    issues
+  );
+  const containerWidthPx = integerInRange(
+    (input.containerWidthPx as number) ?? 1200,
+    "containerWidthPx",
+    960,
+    1600,
+    issues
+  );
+  const spacingScale = optionalNumberInRange(
+    input.spacingScale,
+    "spacingScale",
+    0.75,
+    1.5,
+    issues
+  );
+
+  const customCss =
+    input.customCss === undefined || input.customCss === null || input.customCss === ""
+      ? null
+      : typeof input.customCss === "string"
+        ? input.customCss
+        : null;
+  if (input.customCss !== undefined && input.customCss !== null && typeof input.customCss !== "string") {
+    issues.push({ path: "customCss", message: "must be a string" });
+  }
+
+  const value: AppearanceSettingsInput = {
+    themePreset,
+    primaryAccent,
+    secondaryAccent,
+    typographyScale: typographyScale ?? 1,
+    containerWidthPx,
+    spacingScale: spacingScale ?? 1,
+    customCss,
+  };
+
+  return issues.length === 0 ? { ok: true, value } : { ok: false, issues };
+}
+
+/** Input shape for homepage section ordering. */
+export type HomepageSectionOrderInput = {
+  sectionId: string;
+  position: number;
+  isEnabled: boolean;
+};
+
+/** Alias matching the service's expected validator name. */
+export const validateHomepageSectionOrder = validateHomepageSections;
+
+/** Presentational CSS properties considered safe for custom CSS. */
+export const SAFE_CSS_PROPERTIES = new Set<string>([
+  "color",
+  "background",
+  "background-color",
+  "font",
+  "font-size",
+  "font-weight",
+  "font-family",
+  "font-style",
+  "width",
+  "height",
+  "max-width",
+  "min-width",
+  "max-height",
+  "min-height",
+  "margin",
+  "margin-top",
+  "margin-right",
+  "margin-bottom",
+  "margin-left",
+  "padding",
+  "padding-top",
+  "padding-right",
+  "padding-bottom",
+  "padding-left",
+  "gap",
+  "opacity",
+  "border",
+  "border-radius",
+  "border-width",
+  "border-color",
+  "border-style",
+  "line-height",
+  "letter-spacing",
+  "text-align",
+  "display",
+  "flex",
+  "flex-direction",
+  "align-items",
+  "justify-content",
+]);
+
+/** Validates a custom CSS block against the safe-property allowlist. */
+export function validateCustomCss(raw: unknown): ValidationResult<string> {
+  const issues: FieldIssue[] = [];
+  if (typeof raw !== "string") {
+    issues.push({ path: "", message: "must be a string" });
+    return { ok: false, issues };
+  }
+  const value = raw.trim();
+  if (value.length === 0) {
+    return { ok: true, value: "" };
+  }
+  if (value.length > 20000) {
+    issues.push({ path: "", message: "must be at most 20000 characters" });
+    return { ok: false, issues };
+  }
+  const lower = value.toLowerCase();
+  if (lower.includes("@import")) {
+    issues.push({ path: "", message: "must not contain @import" });
+  }
+  if (lower.includes("url(")) {
+    issues.push({ path: "", message: "must not contain url()" });
+  }
+  if (lower.includes("expression(")) {
+    issues.push({ path: "", message: "must not contain expression()" });
+  }
+  if (lower.includes("javascript:")) {
+    issues.push({ path: "", message: "must not contain javascript:" });
+  }
+  if (/[<>]/.test(value)) {
+    issues.push({ path: "", message: "must not contain unsafe characters" });
+  }
+
+  const blocks = value.split("}");
+  for (const block of blocks) {
+    const trimmed = block.trim();
+    if (trimmed.length === 0) continue;
+    const openIndex = trimmed.indexOf("{");
+    if (openIndex === -1) continue;
+    const declarations = trimmed.slice(openIndex + 1).split(";");
+    for (const decl of declarations) {
+      const d = decl.trim();
+      if (d.length === 0) continue;
+      const colon = d.indexOf(":");
+      if (colon === -1) {
+        issues.push({ path: "", message: "must be valid CSS declarations" });
+        continue;
+      }
+      const prop = d.slice(0, colon).trim().toLowerCase();
+      const val = d.slice(colon + 1).trim();
+      if (!SAFE_CSS_PROPERTIES.has(prop)) {
+        issues.push({ path: "", message: `property "${prop}" is not allowed` });
+      }
+      const vLower = val.toLowerCase();
+      if (/[<>]/.test(val) || vLower.includes("url(") || vLower.includes("expression(") || vLower.includes("javascript:")) {
+        issues.push({ path: "", message: "unsafe value" });
+      }
+    }
+  }
+
+  return issues.length === 0 ? { ok: true, value } : { ok: false, issues };
+}

@@ -61,13 +61,15 @@ export function CsvImportForm() {
 
   useEffect(() => {
     if (preview && resolutions.length === 0) {
-      setResolutions(buildDefaults(preview));
+      const id = window.setTimeout(() => setResolutions(buildDefaults(preview)), 0);
+      return () => window.clearTimeout(id);
     }
   }, [preview, resolutions.length]);
 
   useEffect(() => {
     if (result) {
-      setResolutions([]);
+      const id = window.setTimeout(() => setResolutions([]), 0);
+      return () => window.clearTimeout(id);
     }
   }, [result]);
 

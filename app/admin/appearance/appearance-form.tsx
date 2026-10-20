@@ -50,6 +50,8 @@ export function AppearanceForm({ settings }: AppearanceFormProps) {
     () => appearanceIssuesByPath(state.issues),
     [state.issues]
   );
+
+  return (
     <form action={formAction} className="max-w-3xl space-y-6">
       {state.error ? (
         <div
