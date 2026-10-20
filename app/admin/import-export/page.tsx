@@ -1,12 +1,13 @@
 import { requireAdmin } from "../../auth/requireAdmin";
 import { CsvImportForm } from "./csv-import-form";
+import { JsonBackupExportForm } from "./json-backup-export-form";
 
 /**
- * Import and export (task 03-03).
+ * Import and export (task 03-05).
  *
- * The first slice of this section is a read-only CSV dry run: upload, validate,
- * inspect the preview. Merge commits, JSON backups and SQL exports are later
- * tasks and are listed below so the page never implies they exist.
+ * CSV import includes the full merge workflow (03-04). JSON backup export with
+ * media manifest and checksums (03-05) is now available; SQL export remains
+ * planned for 03-06.
  */
 export default async function ImportExportPage() {
   await requireAdmin();
@@ -17,24 +18,20 @@ export default async function ImportExportPage() {
         Import and export
       </h1>
       <p className="mt-2 max-w-2xl text-muted">
-        Bulk-load collection data and produce restorable backups. The CSV
-        preview below validates an upload without writing any records.
+        Bulk-load collection data with a safe merge workflow. Create an admin-only
+        JSON backup of application data with a media manifest containing stable
+        IDs, object paths/URLs as appropriate, MIME types, sizes, checksums if
+        available, and reference relationships. Draft and private metadata are
+        only included in authorized backups.
       </p>
 
       <CsvImportForm />
 
+      <JsonBackupExportForm />
+
       <div className="mt-8 rounded-lg border border-dashed border-border bg-surface-raised p-5">
         <h2 className="text-sm font-semibold text-foreground">Not built yet</h2>
         <ul className="mt-3 space-y-2 text-sm text-muted">
-          <li>
-            <span className="font-medium text-foreground">03-04:</span>{" "}
-            merge-resolution workflow for committing previewed rows and
-            updating existing records.
-          </li>
-          <li>
-            <span className="font-medium text-foreground">03-05:</span> JSON
-            backup export with a media manifest and checksums.
-          </li>
           <li>
             <span className="font-medium text-foreground">03-06:</span> SQL
             export and restore safeguards that never run destructively by

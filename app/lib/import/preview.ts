@@ -20,7 +20,12 @@
  */
 
 import type { FieldIssue } from "../content/validation.ts";
-import { validateHeroInput, validateSkinInput } from "../content/validation.ts";
+import {
+  validateHeroInput,
+  validateSkinInput,
+  type HeroInput,
+  type SkinInput,
+} from "../content/validation.ts";
 import { isUuid } from "../content/form-utils.ts";
 import {
   CSV_COLUMNS_BY_ENTITY,
@@ -40,6 +45,23 @@ export interface ImportPreviewRow {
   slug: string;
   name: string;
   action: "new" | "existing";
+}
+
+/**
+ * One valid data row with its normalized payload.
+ *
+ * `buildImportPreview` drops the payload because the 03-03 dry run only lists
+ * rows; the 03-04 merge preview needs the exact normalized values, so the row
+ * parser is shared rather than duplicated. Keeping one parser means a row that
+ * validates here validates identically at merge time.
+ */
+export interface ParsedImportRow {
+  row: number;
+  slug: string;
+  name: string;
+  action: "new" | "existing";
+  /** The normalized payload the validators produced. */
+  payload: HeroInput | SkinInput;
 }
 
 export interface ImportRowError {
@@ -109,6 +131,57 @@ export function buildImportPreview(
   records: readonly (readonly string[])[],
   references: ImportReferences
 ): ImportPreviewResult {
+  const parsed = parseImportRecords(entity, records, references);
+  if (!parsed.ok) return parsed;
+
+  const newRows: ImportPreviewRow[] = [];
+  const existingRows: ImportPreviewRow[] = [];
+  for (const row of parsed.rows) {
+    const previewRow: ImportPreviewRow = {
+      row: row.row,
+      slug: row.slug,
+      name: row.name,
+      action: row.action,
+    };
+    if (row.action === "existing") {
+      existingRows.push(previewRow);
+    } else {
+      newRows.push(previewRow);
+    }
+  }
+
+  return {
+    ok: true,
+    preview: {
+      entity,
+      totalRows: parsed.totalRows,
+      newRows,
+      existingRows,
+      errors: parsed.errors,
+    },
+  };
+}
+
+export type ParseImportRecordsResult =
+  | {
+      ok: true;
+      /** Non-blank data rows (the header is excluded). */
+      totalRows: number;
+      rows: ParsedImportRow[];
+      errors: ImportRowError[];
+    }
+  | { ok: false; error: string };
+
+/**
+ * Validates every row once and returns both the valid rows (with normalized
+ * payloads) and the rejected rows. Shared by the 03-03 dry run and the 03-04
+ * merge preview so classification and errors cannot drift between the two.
+ */
+export function parseImportRecords(
+  entity: ImportEntity,
+  records: readonly (readonly string[])[],
+  references: ImportReferences
+): ParseImportRecordsResult {
   if (records.length === 0) {
     return { ok: false, error: "The CSV is empty. Add a header row and data rows." };
   }
@@ -123,8 +196,7 @@ export function buildImportPreview(
   );
   const seenSlugs = new Map<string, number>();
 
-  const newRows: ImportPreviewRow[] = [];
-  const existingRows: ImportPreviewRow[] = [];
+  const rows: ParsedImportRow[] = [];
   const errors: ImportRowError[] = [];
   let totalRows = 0;
 
@@ -153,34 +225,26 @@ export function buildImportPreview(
       }
     }
 
-    if (entity === "heroes") {
-      collectHeroIssues(record, column, issues);
-    } else {
-      collectSkinIssues(record, column, heroBySlug, issues);
-    }
+    const payload =
+      entity === "heroes"
+        ? collectHeroPayload(record, column, issues)
+        : collectSkinPayload(record, column, heroBySlug, issues);
 
-    if (issues.length > 0) {
+    if (payload === null || issues.length > 0) {
       errors.push({ row, slug: slug.length > 0 ? slug : null, issues });
       continue;
     }
 
-    const previewRow: ImportPreviewRow = {
+    rows.push({
       row,
       slug,
       name,
       action: existingSlugs.has(slug) ? "existing" : "new",
-    };
-    if (previewRow.action === "existing") {
-      existingRows.push(previewRow);
-    } else {
-      newRows.push(previewRow);
-    }
+      payload,
+    });
   }
 
-  return {
-    ok: true,
-    preview: { entity, totalRows, newRows, existingRows, errors },
-  };
+  return { ok: true, totalRows, rows, errors };
 }
 
 // ---------------------------------------------------------------------------
@@ -257,11 +321,11 @@ function cell(
   return index === undefined ? "" : (record[index] ?? "").trim();
 }
 
-function collectHeroIssues(
+function collectHeroPayload(
   record: readonly string[],
   column: Map<string, number>,
   issues: FieldIssue[]
-): void {
+): HeroInput | null {
   const portraitMediaId = cell(record, column, "portrait_media_id");
   if (portraitMediaId.length > 0 && !isUuid(portraitMediaId)) {
     issues.push({
@@ -294,15 +358,17 @@ function collectHeroIssues(
 
   if (!result.ok) {
     pushMappedIssues(result.issues, HERO_ISSUE_COLUMN, issues);
+    return null;
   }
+  return result.value;
 }
 
-function collectSkinIssues(
+function collectSkinPayload(
   record: readonly string[],
   column: Map<string, number>,
   heroBySlug: Map<string, { id: string; slug: string }>,
   issues: FieldIssue[]
-): void {
+): SkinInput | null {
   const heroSlug = cell(record, column, "hero_slug").toLowerCase();
   let heroId: string | null = null;
   if (heroSlug.length > 0) {
@@ -350,7 +416,9 @@ function collectSkinIssues(
 
   if (!result.ok) {
     pushMappedIssues(result.issues, SKIN_ISSUE_COLUMN, issues);
+    return null;
   }
+  return result.value;
 }
 
 function pushMappedIssues(

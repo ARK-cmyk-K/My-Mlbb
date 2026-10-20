@@ -10,9 +10,11 @@ import {
   type ImportEntity,
 } from "../lib/import/columns.ts";
 import {
-  buildImportPreview,
-  type CsvImportState,
-} from "../lib/import/preview.ts";
+  buildMergePreview,
+  type MergeReferences,
+} from "../lib/import/merge.ts";
+import { commitMergePreview } from "../lib/import/merge-commit.ts";
+import { mergePreviewStore } from "../lib/import/preview-store.ts";
 import { buildImportErrorReport } from "../lib/import/spreadsheet.ts";
 import {
   decodeCsvBytes,
@@ -20,18 +22,53 @@ import {
   MAX_CSV_ROWS,
   validateCsvFileMeta,
 } from "../lib/import/upload.ts";
+import type { FieldIssue } from "../lib/content/validation.ts";
+
+export type { MergeRowOutcome, MergeCommitSummary } from "../lib/import/merge-commit.ts";
+export type {
+  MergeFieldDiff,
+  MergePreviewPayload,
+  MergePreviewRow,
+  MergeRowResolution,
+  MergeValue,
+} from "../lib/import/merge.ts";
+
+/** Serializable result of the import/merge workflow (task 03-04). */
+export interface CsvImportState {
+  error?: string;
+  issues?: FieldIssue[];
+  preview?: MergePreviewView;
+  result?: import("../lib/import/merge-commit.ts").MergeCommitSummary;
+}
+
+export interface MergePreviewView {
+  previewId: string;
+  entity: ImportEntity;
+  totalRows: number;
+  newRows: Array<{ row: number; slug: string; name: string }>;
+  existingRows: Array<{
+    row: number;
+    slug: string;
+    name: string;
+    diffs: Array<{
+      field: string;
+      label: string;
+      existing: import("../lib/import/merge.ts").MergeValue;
+      imported: import("../lib/import/merge.ts").MergeValue;
+    }>;
+  }>;
+  errors: import("../lib/import/preview.ts").ImportRowError[];
+  errorReportCsv?: string;
+}
 
 /**
- * CSV dry-run preview (task 03-03).
+ * Merge preview (task 03-04).
  *
- * Reads the uploaded file, validates it in memory and returns a structured
- * preview. **Nothing is written** — the only database access is two read-only
- * list calls used to classify rows and resolve hero slugs. Mutations belong to
- * the merge task (03-04), which will re-validate rather than trusting a preview.
- *
- * The action is reachable directly, so it does not rely on the page guard for
- * authorization: the content service authorizes every read (admin identity +
- * RLS) and returns a typed, caller-safe error otherwise.
+ * Uploads the file, validates it, computes field-by-field diffs for existing
+ * rows, stores the canonical preview on the server and returns a preview id
+ * together with the reviewable diff. The client only ever sends choices back
+ * to {@link commitCsvImportAction}; the server re-validates and re-reads the
+ * current draft state before applying anything. Nothing is written here.
  */
 export async function previewCsvImportAction(
   _prevState: CsvImportState,
@@ -77,16 +114,19 @@ export async function previewCsvImportAction(
   }
 
   try {
-    const references = await loadReferences(entity);
-    const result = buildImportPreview(entity, parsed.records, references);
+    const references = await loadMergeReferences(entity);
+    const result = buildMergePreview(entity, parsed.records, references);
     if (!result.ok) {
       return { error: result.error };
     }
 
-    const preview = result.preview;
+    const previewId = mergePreviewStore.put(result.payload);
+    const preview = result.payload;
+    const view = toView(previewId, preview);
+
     return {
       preview: {
-        ...preview,
+        ...view,
         errorReportCsv:
           preview.errors.length > 0
             ? buildImportErrorReport(preview.errors)
@@ -103,15 +143,88 @@ export async function previewCsvImportAction(
   }
 }
 
-async function loadReferences(entity: ImportEntity) {
-  const heroes = await contentService.listDraftHeroes({ includeArchived: true });
-  const existing =
-    entity === "heroes"
-      ? heroes
-      : await contentService.listDraftSkins({ includeArchived: true });
+/**
+ * Commits the operator's resolved choices (task 03-04).
+ *
+ * The preview id binds this request to a server-generated preview. The
+ * implementation re-reads the draft tables, checks for stale/conflicting
+ * edits, re-validates every merged payload and applies changes only to drafts
+ * in a controlled operation with compensation on failure.
+ */
+export async function commitCsvImportAction(
+  _prevState: CsvImportState,
+  formData: FormData
+): Promise<CsvImportState> {
+  const previewId = formData.get("previewId");
+  if (typeof previewId !== "string" || previewId.length === 0) {
+    return { error: "This preview is no longer available. Run the import preview again." };
+  }
 
+  const resolutionsRaw = formData.get("resolutions");
+  if (typeof resolutionsRaw !== "string") {
+    return { error: "No choices were submitted." };
+  }
+
+  let resolutions: unknown;
+  try {
+    resolutions = JSON.parse(resolutionsRaw);
+  } catch {
+    return { error: "The submitted choices are not valid." };
+  }
+
+  try {
+    const result = await commitMergePreview(
+      { service: contentService, store: mergePreviewStore },
+      { previewId, resolutions }
+    );
+    if (!result.ok) {
+      return { error: result.error, issues: result.issues, result: result.summary };
+    }
+    return { result: result.summary };
+  } catch (error) {
+    if (isContentServiceError(error)) {
+      return { error: error.message };
+    }
+    return {
+      error: "The merge could not be completed. Please try again.",
+    };
+  }
+}
+
+async function loadMergeReferences(entity: ImportEntity): Promise<MergeReferences> {
+  const [heroes, skins] = await Promise.all([
+    contentService.listDraftHeroes({ includeArchived: true }),
+    contentService.listDraftSkins({ includeArchived: true }),
+  ]);
+  return { existingSlugs: [], heroes, skins };
+}
+
+function toView(previewId: string, payload: import("../lib/import/merge.ts").MergePreviewPayload): MergePreviewView {
   return {
-    existingSlugs: existing.map((record) => record.slug),
-    heroes: heroes.map((hero) => ({ id: hero.id, slug: hero.slug })),
+    previewId,
+    entity: payload.entity,
+    totalRows: payload.totalRows,
+    newRows: payload.rows
+      .filter((row) => row.action === "new")
+      .map((row) => ({ row: row.row, slug: row.slug, name: row.name })),
+    existingRows: payload.rows
+      .filter((row) => row.action === "existing")
+      .map((row) => ({
+        row: row.row,
+        slug: row.slug,
+        name: row.name,
+        diffs: row.diffs
+          .filter((diff) => diff.differs)
+          .map((diff) => ({
+            field: diff.field,
+            label: diff.label,
+            existing: diff.existing,
+            imported: diff.imported,
+          })),
+      })),
+    errors: payload.errors,
   };
 }
+
+// Keep the legacy type in scope for any tooling that imports it.
+export type { CsvImportState as CsvImportStateLegacy } from "../lib/import/preview.ts";
