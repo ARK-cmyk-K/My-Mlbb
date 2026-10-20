@@ -33,7 +33,7 @@ Use one prompt per task. IDs are stable and should be referenced in `PROJECT_STA
 - [ ] `04-06` Publish, scheduled publish, and rollback
 
 ## Phase 5 — Public showcase and interactions
-- [ ] `05-01` Public site shell and adaptive navigation
+- [x] `05-01` Public site shell and adaptive navigation
 - [ ] `05-02` Spotlight header and stats strip
 - [ ] `05-03` Showcase tabs and milestone timeline
 - [ ] `05-04` Hero and skin explorer
