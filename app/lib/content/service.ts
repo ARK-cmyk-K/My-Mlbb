@@ -21,6 +21,8 @@ import { ContentServiceError } from "./errors.ts";
 import {
   ACTIVE_RELEASE_COLUMNS,
   DRAFT_ACHIEVEMENT_COLUMNS,
+  DRAFT_APPEARANCE_SETTINGS_COLUMNS,
+  DRAFT_HOMEPAGE_SECTION_COLUMNS,
   DRAFT_HERO_COLUMNS,
   DRAFT_SKIN_COLUMNS,
   DRAFT_TIMELINE_COLUMNS,
@@ -30,7 +32,9 @@ import {
   PUBLISHED_TIMELINE_COLUMNS,
   toActiveRelease,
   toDraftAchievement,
+  toDraftAppearanceSettings,
   toDraftHero,
+  toDraftHomepageSection,
   toDraftSkin,
   toDraftTimelineEntry,
   toPublishedAchievement,
@@ -41,17 +45,21 @@ import {
 import type { ContentService, DraftListOptions, DraftResource } from "./port.ts";
 import type { AuthLike } from "./client.ts";
 import type {
+  AppearanceSettingsInput,
   FieldIssue,
   HeroInput,
+  HomepageSectionOrderInput,
   SkinInput,
   TimelineEntryInput,
 } from "./validation.ts";
 import {
+  validateAppearanceSettingsInput,
   validateHeroInput,
+  validateHomepageSectionOrder,
   validateSkinInput,
   validateTimelineEntryInput,
 } from "./validation.ts";
-
+import { APPROVED_HOMEPAGE_SECTION_IDS } from "./homepage-sections.ts";
 /**
  * Supabase-backed content service (task 02-03) — the current database
  * implementation of the {@link ContentService} port.
@@ -237,6 +245,62 @@ export function createSupabaseContentService(): ContentService {
       await deleteDraftRow(db, "timeline_entries", id);
     },
 
+    async getDraftAppearanceSettings() {
+      const db = await requireAdminDb();
+      const result = await db
+        .from("appearance_settings")
+        .select(DRAFT_APPEARANCE_SETTINGS_COLUMNS)
+        .eq("id", 1)
+        .maybeSingle();
+      return readOne(result, "1", toDraftAppearanceSettings);
+    },
+
+    async updateDraftAppearanceSettings(input) {
+      const validated = requireValidation(validateAppearanceSettingsInput(input));
+      const db = await requireAdminDb();
+      const result = await db
+        .from("appearance_settings")
+        .update(toAppearanceSettingsRow(validated))
+        .eq("id", 1)
+        .select(DRAFT_APPEARANCE_SETTINGS_COLUMNS)
+        .maybeSingle();
+      return readOne(result, "1", toDraftAppearanceSettings);
+    },
+
+    async listDraftHomepageSections() {
+      const db = await requireAdminDb();
+      const result = await db
+        .from("homepage_sections")
+        .select(DRAFT_HOMEPAGE_SECTION_COLUMNS)
+        .order("position", { ascending: true });
+      return rowsOf(result).map((row) => toDraftHomepageSection(row));
+    },
+
+    async updateDraftHomepageSections(input) {
+      const validated = requireValidation(validateHomepageSectionOrder(input));
+      const db = await requireAdminDb();
+
+      // Replace the entire configuration atomically so positions stay unique
+      // and every approved module remains present (the validator enforces
+      // exact coverage).
+      const deleted = await db.from("homepage_sections").delete().neq("section_id", "");
+      throwIfError(deleted.error);
+
+      const rows = validated.map((entry) => ({
+        section_id: entry.sectionId,
+        position: entry.position,
+        is_enabled: entry.isEnabled,
+      }));
+      const inserted = await db
+        .from("homepage_sections")
+        .insert(rows)
+        .select(DRAFT_HOMEPAGE_SECTION_COLUMNS);
+      throwIfError(inserted.error);
+      const list = rowsOf(inserted);
+      list.sort((a, b) => Number((a as any).position) - Number((b as any).position));
+      return list.map((row) => toDraftHomepageSection(row));
+    },
+
     // ------------------------------------------------------------------
     // Publication lifecycle (admin only)
     // ------------------------------------------------------------------
@@ -323,6 +387,15 @@ export function createSupabaseContentService(): ContentService {
         ),
         timelineEntries: timeline.map((row) => toPublishedTimelineEntry(row)),
       };
+    },
+
+    async getPublishedHomepageSections() {
+      const db = await publicDb();
+      // Until 04-05/04-06 freeze the full snapshot into the published release
+      // payload, the public configuration is not exposed by the current schema.
+      // Returning [] here means the public layout must handle an unpublished
+      // state explicitly (and never fall back to draft data).
+      return [];
     },
   };
 }
@@ -540,6 +613,16 @@ function toTimelineRow(input: TimelineEntryInput) {
   };
 }
 
+function toAppearanceSettingsRow(input: AppearanceSettingsInput) {
+  return {
+    theme_preset: input.themePreset,
+    primary_accent: input.primaryAccent,
+    secondary_accent: input.secondaryAccent,
+    typography_scale: input.typographyScale,
+    container_width_px: input.containerWidthPx,
+    spacing_scale: input.spacingScale,
+  };
+}
 /**
  * Maps a write failure to a typed error. Unique-violation (`23505`) becomes
  * `CONFLICT`; foreign-key violation (`23503`) becomes `DEPENDENCY_MISSING`; a

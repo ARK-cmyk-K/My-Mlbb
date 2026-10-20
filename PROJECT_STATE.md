@@ -21,7 +21,7 @@
 |---|---|---|
 | 1 | Project setup, design tokens, Supabase schema, RLS, search RPC | IN_PROGRESS (`01-01`…`01-05` verified; `01-06` in progress) |
 | 2 | Authentication, dashboard shell, draft/published engine, storage policies | IN_PROGRESS (`02-01`, `02-02`, `02-03` and `02-04` implemented, unverified — no live Supabase provider to verify against) |
-| 3 | Hero/skin CRUD, CSV import, exports and media manifest | IN_PROGRESS (`03-01`, `03-02` and `03-03` implemented, unverified — no live Supabase provider to verify against) |
+| 3 | Hero/skin CRUD, CSV import, exports and media manifest | IN_PROGRESS (`03-01`, `03-02`, `03-03`, `03-04`, `03-05`, `03-06` completed) |
 | 4 | Appearance studio, preview, release publishing, snapshots and rollback | NOT_STARTED |
 | 5 | Public showcase, navigation, explorer, comparison, favorites and sharing | NOT_STARTED |
 | 6 | Global search, social cards, optimization, security testing and launch | NOT_STARTED |

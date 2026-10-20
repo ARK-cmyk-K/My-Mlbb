@@ -1,6 +1,7 @@
 import type {
   ActiveRelease,
   DraftAchievement,
+  DraftAppearanceSettings,
   DraftHero,
   DraftSkin,
   DraftState,
@@ -15,16 +16,21 @@ import type {
   DraftResource,
 } from "./port.ts";
 import {
+  validateAppearanceSettingsInput,
   validateHeroInput,
+  validateHomepageSectionOrder,
   validateSkinInput,
   validateTimelineEntryInput,
 } from "./validation.ts";
 import type {
+  AppearanceSettingsInput,
   HeroInput,
+  HomepageSectionOrderInput,
   SkinInput,
   TimelineEntryInput,
+  ValidationResult,
 } from "./validation.ts";
-
+import { defaultHomepageSectionConfiguration } from "./homepage-sections.ts";
 /**
  * In-memory content-service double (task 02-03).
  *
@@ -56,6 +62,8 @@ export interface SeedData {
   achievements?: Array<Partial<DraftAchievement>>;
   timelineEntries?: Array<Partial<DraftTimelineEntry>>;
   publishedRelease?: PublishedRelease | null;
+  homepageSections?: Array<Partial<any>>;
+  publishedHomepageSections?: Array<Partial<any>>;
 }
 
 const UNAUTHENTICATED_ACTOR: InMemoryActor = {
@@ -150,6 +158,23 @@ function seedAchievement(seed: Partial<DraftAchievement>): DraftAchievement {
   };
 }
 
+function seedAppearanceSettings(
+  seed?: Partial<DraftAppearanceSettings>
+): DraftAppearanceSettings {
+  return {
+    id: 1,
+    themePreset: seed?.themePreset ?? "adaptive",
+    primaryAccent: seed?.primaryAccent ?? "#8b5cf6",
+    secondaryAccent: seed?.secondaryAccent ?? "#f59e0b",
+    typographyScale: seed?.typographyScale ?? 1.0,
+    containerWidthPx: seed?.containerWidthPx ?? 1200,
+    spacingScale: seed?.spacingScale ?? 1.0,
+    customCss: seed?.customCss ?? null,
+    publicationState: seed?.publicationState ?? "draft",
+    createdAt: seed?.createdAt ?? nowIso(),
+    updatedAt: seed?.updatedAt ?? nowIso(),
+  };
+}
 export interface InMemoryServiceOptions {
   actor?: InMemoryActor;
   seed?: SeedData;
@@ -168,6 +193,23 @@ export function createInMemoryContentService(
   const achievements = (options.seed?.achievements ?? []).map(seedAchievement);
   const timelineEntries = (options.seed?.timelineEntries ?? []).map(
     seedTimelineEntry
+  );
+  let appearanceSettings = seedAppearanceSettings(
+    options.seed as Partial<SeedData> & {
+      appearanceSettings?: Partial<DraftAppearanceSettings>;
+    }["appearanceSettings"]
+      ? (options.seed as any).appearanceSettings
+      : undefined
+  );
+  let draftHomepageSections: any[] = (options.seed?.homepageSections ?? defaultHomepageSectionConfiguration()).map(
+    (seed: any) => ({
+      sectionId: seed.sectionId,
+      position: seed.position,
+      isEnabled: seed.isEnabled ?? true,
+      publicationState: (seed.publicationState as any) ?? "draft",
+      createdAt: seed.createdAt ?? nowIso(),
+      updatedAt: seed.updatedAt ?? nowIso(),
+    })
   );
   const publishedRelease = options.seed?.publishedRelease ?? null;
 
@@ -231,6 +273,16 @@ export function createInMemoryContentService(
         message: `No hero exists with id "${heroId}".`,
       });
     }
+  }
+
+  /** Turns validator issues into the port's typed error (mirrors `service.ts`). */
+  function requireValidation<T>(result: ValidationResult<T>): T {
+    if (!result.ok) {
+      throw new ContentServiceError("VALIDATION_FAILED", {
+        issues: result.issues,
+      });
+    }
+    return result.value;
   }
 
   return {
@@ -406,6 +458,43 @@ export function createInMemoryContentService(
       timelineEntries.splice(findIndex(timelineEntries, id), 1);
     },
 
+    async getDraftAppearanceSettings() {
+      requireAdmin();
+      return JSON.parse(JSON.stringify(appearanceSettings));
+    },
+
+    async updateDraftAppearanceSettings(input) {
+      requireAdmin();
+      const validated = requireValidation(
+        validateAppearanceSettingsInput(input)
+      );
+      appearanceSettings = {
+        ...appearanceSettings,
+        ...validated,
+        updatedAt: nowIso(),
+      };
+      return JSON.parse(JSON.stringify(appearanceSettings));
+    },
+
+    async listDraftHomepageSections() {
+      requireAdmin();
+      return draftHomepageSections.map((row: any) => ({ ...row }));
+    },
+
+    async updateDraftHomepageSections(input: any) {
+      requireAdmin();
+      const validated = requireValidation(validateHomepageSectionOrder(input));
+      draftHomepageSections = (validated as any[]).map((entry: any) => ({
+        sectionId: entry.sectionId,
+        position: entry.position,
+        isEnabled: entry.isEnabled,
+        publicationState: "draft",
+        createdAt: nowIso(),
+        updatedAt: nowIso(),
+      }));
+      return draftHomepageSections.map((row: any) => ({ ...row }));
+    },
+
     async transitionDraftState(
       resource: DraftResource,
       id: string,
@@ -457,6 +546,19 @@ export function createInMemoryContentService(
           ...row,
         })),
       };
+    },
+
+    async getPublishedHomepageSections() {
+      requirePublicConfigured();
+      const sections = (publishedRelease as any)?.homepageSections ?? [];
+      return sections
+        .filter(
+          (entry: any) =>
+            entry &&
+            entry.isEnabled &&
+            typeof entry.sectionId === "string"
+        )
+        .map((entry: any) => ({ ...entry }));
     },
   };
 }

@@ -101,3 +101,41 @@ export type {
   SkinAdminService,
   SkinMutationOutcome,
 } from "./skin-admin.ts";
+export {
+  appearanceToFormValues,
+  EMPTY_APPEARANCE_FORM_VALUES,
+  issuesByPath as appearanceIssuesByPath,
+  parseAppearanceForm,
+  presetLabel,
+  THEME_PRESET_OPTIONS,
+} from "./appearance-form.ts";
+export type { AppearanceFormValues } from "./appearance-form.ts";
+export { createAppearanceAdminService } from "./appearance-admin.ts";
+export type { AppearanceActionState, AppearanceAdminService } from "./appearance-admin.ts";
+export {
+  validateAppearanceSettingsInput,
+  THEME_PRESETS,
+  type AppearanceSettingsInput,
+  type ThemePreset,
+  validateHomepageSectionOrder,
+  type HomepageSectionOrderEntry,
+  type HomepageSectionOrderInput,
+} from "./validation.ts";
+export type {
+  DraftAppearanceSettings,
+  DraftHomepageSection,
+  PublishedHomepageSection,
+} from "./contracts.ts";
+export {
+  APPROVED_HOMEPAGE_SECTION_IDS,
+  APPROVED_HOMEPAGE_SECTIONS,
+  composeHomepageLayout,
+  defaultHomepageSectionConfiguration,
+  homepageSectionDefinition,
+  isApprovedHomepageSectionId,
+} from "./homepage-sections.ts";
+export type {
+  HomepageLayoutSlot,
+  HomepageSectionConfiguration,
+  HomepageSectionDefinition,
+} from "./homepage-sections.ts";

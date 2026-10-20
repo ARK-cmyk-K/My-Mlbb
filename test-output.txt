@@ -1,0 +1,1325 @@
+
+> mlbb-showcase@0.1.0 test
+> node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test "app/**/*.test.ts" --testPathPattern=validation
+
+✔ denies when Supabase is not configured, even with a user (13.3393ms)
+✔ denies unauthenticated access to the dashboard (0.5171ms)
+✔ denies an expired or invalid session (no verified user) (0.4336ms)
+✔ denies an authenticated non-admin user (0.494ms)
+✔ allows only the authenticated configured admin (1.4666ms)
+✔ sanitizeRedirectTarget keeps same-origin dashboard paths (12.3296ms)
+✔ sanitizeRedirectTarget rejects open-redirect attempts (0.7717ms)
+✔ sanitizeRedirectTarget refuses paths outside the dashboard (0.5407ms)
+✔ sanitizeRedirectTarget rejects control characters (0.5363ms)
+✔ a draft row can be published or archived (3.4223ms)
+✔ a published row can be unpublished or archived (2.9384ms)
+✔ an archived row can only be restored to draft (1.2342ms)
+✔ illegal transitions return null (0.8255ms)
+✔ allowedTransitions agrees with resolveDraftTransition (2.6113ms)
+✔ every publication state has a display label (0.5953ms)
+✔ every error code has an HTTP status and a default message (7.6367ms)
+✔ the status map distinguishes auth, validation and storage faults (0.4669ms)
+✔ field issues are carried through for VALIDATION_FAILED (10.5024ms)
+✔ errors without issues default to an empty list (0.4596ms)
+✔ isContentServiceError narrows unknown values (0.5551ms)
+✔ serialization omits the server-only cause (0.8356ms)
+✖ create writes a draft hero for the configured admin (253.4008ms)
+✖ create rejects invalid input with field issues and does not write (2.3631ms)
+✖ create surfaces a duplicate slug as a typed conflict, not a database error (2.2963ms)
+✖ mutations fail closed for a signed-out caller (0.9741ms)
+✖ mutations fail closed for a non-admin session (0.8435ms)
+✖ mutations report an unconfigured content store (0.8011ms)
+✖ update requires an id and validates the payload (1.7587ms)
+✔ delete removes the hero and reports a missing target (1.9081ms)
+✔ transition applies legal moves and rejects illegal ones (9.0086ms)
+✖ parseHeroForm accepts a complete valid submission (299.9955ms)
+✖ parseHeroForm treats blank optionals as null and absent checkboxes as false (1.7205ms)
+✖ parseHeroForm reports required fields (1.6057ms)
+✖ parseHeroForm rejects a bad slug and a duplicate role (10.7406ms)
+✖ parseHeroForm enforces numeric bounds (3.4485ms)
+✖ parseHeroForm requires a UUID portrait media id (10.9002ms)
+✔ issuesByPath keeps the first message per field (4.5311ms)
+✖ heroToFormValues round-trips a stored hero (1.0249ms)
+✔ slugify produces schema-valid slugs (9.5063ms)
+✔ isUuid matches canonical UUIDs only (1.1192ms)
+✖ EMPTY_HERO_FORM_VALUES parses as a valid starter except required fields (0.7242ms)
+✔ draft reads reject an unauthenticated caller (25.0066ms)
+✔ draft reads reject an authenticated non-admin (3.091ms)
+✔ draft reads fail closed when Supabase is not configured (0.9363ms)
+✔ draft writes reject an unauthenticated caller (1.6269ms)
+✔ draft writes reject an authenticated non-admin (1.7839ms)
+✖ an admin can create, read and update a draft hero (1.4866ms)
+✔ an admin can delete a draft hero (10.0145ms)
+✔ reading a missing draft hero is NOT_FOUND (1.1776ms)
+✖ a create with invalid input is VALIDATION_FAILED with field issues (15.0752ms)
+✖ duplicate slugs are a CONFLICT (1.1584ms)
+✖ a skin referencing an unknown hero is DEPENDENCY_MISSING (1.5418ms)
+✔ an admin can publish then unpublish a draft hero (0.8637ms)
+✔ archiving stamps archivedAt and restore clears it (0.5801ms)
+✔ an illegal transition is INVALID_TRANSITION (1.3428ms)
+✔ transitioning a missing row is NOT_FOUND (1.2454ms)
+✔ draft lists exclude archived rows by default (6.6999ms)
+✔ skins can be scoped to a hero (1.419ms)
+✔ public reads work without any session (13.189ms)
+✔ public reads fail closed when Supabase is not configured (0.8503ms)
+✔ getActiveRelease returns null when nothing is published (0.3307ms)
+✔ getPublishedRelease is NO_PUBLISHED_RELEASE when nothing is published (0.4497ms)
+✖ each in-memory service instance is isolated (0.5215ms)
+✔ SeedData is re-exported for test authors (0.4742ms)
+✖ create writes a draft skin for the configured admin (176.8402ms)
+✖ create records a hero association when the hero exists (1.4537ms)
+✖ create rejects an unknown hero association with a caller-safe message (0.8943ms)
+✖ create rejects invalid input with field issues and does not write (1.1166ms)
+✖ create surfaces a duplicate slug as a typed conflict, not a database error (1.3059ms)
+✖ mutations fail closed for a signed-out caller (7.7977ms)
+✖ mutations fail closed for a non-admin session (1.0593ms)
+✖ mutations report an unconfigured content store (0.87ms)
+✖ update requires an id and validates the payload (2.4658ms)
+✔ delete removes the skin and reports a missing target (12.5751ms)
+✔ transition applies legal moves and rejects illegal ones (1.8892ms)
+✖ parseSkinForm accepts a complete valid submission (185.1764ms)
+✖ parseSkinForm treats blank optionals as null and absent checkboxes as false (2.679ms)
+✖ parseSkinForm rejects a missing name and rarity (0.8288ms)
+✖ parseSkinForm rejects an invalid slug and unknown rarity/variant (0.5656ms)
+✖ parseSkinForm enforces the acquisition date format and bounds (0.5923ms)
+✖ parseSkinForm enforces the series and milestone length limits (15.8808ms)
+✖ parseSkinForm rejects a non-UUID hero association before it reaches PostgREST (0.879ms)
+✖ parseSkinForm rejects a non-UUID splash art reference (6.4983ms)
+✖ parseSkinForm reports both bad references together (1.4226ms)
+✖ skinToFormValues round-trips through parseSkinForm (1.3428ms)
+✔ EMPTY_SKIN_FORM_VALUES has no preselected values (6.2922ms)
+✖ validateHeroInput accepts a minimal hero and fills defaults (14.297ms)
+✖ validateHeroInput trims strings and rounds winRate to numeric(5,2) (1.0012ms)
+✖ validateSkinInput accepts a minimal skin (0.9047ms)
+✖ validateTimelineEntryInput accepts a minimal entry (1.0407ms)
+✖ validators reject non-object payloads with an empty path (0.6746ms)
+✖ validateHeroInput reports the offending field paths (0.4063ms)
+✖ validateHeroInput enforces the slug pattern (0.3683ms)
+✖ validateHeroInput rejects a secondary role equal to the primary (0.3591ms)
+✖ validateHeroInput bounds masteryLevel and winRate (0.4683ms)
+✖ validateSkinInput rejects an unknown rarity (16.564ms)
+✖ validateSkinInput validates the ISO date and its bounds (6.8404ms)
+✖ validateTimelineEntryInput requires an occurredOn date (0.7933ms)
+✖ validateTimelineEntryInput rejects an unknown kind (0.5906ms)
+✖ validateHomepageSections rejects duplicate positions (1.002ms)
+✖ validateHomepageSections enforces the section-id pattern (0.352ms)
+✖ validateHomepageSections accepts a well-formed list (0.3761ms)
+✔ validateHomepageSectionOrder rejects non-array payloads (0.8402ms)
+✖ validateHomepageSectionOrder rejects unknown module ids (0.3926ms)
+✖ validateHomepageSectionOrder rejects missing modules (0.3839ms)
+✖ validateHomepageSectionOrder rejects non-boolean isEnabled (0.3449ms)
+✔ validateCustomCss accepts safe CSS with allowed properties and values (1.6128ms)
+✔ validateCustomCss rejects @import rules (4.7396ms)
+✔ validateCustomCss rejects url() functions (0.7912ms)
+✔ validateCustomCss rejects expression() values (0.7494ms)
+✔ validateCustomCss rejects javascript: values (0.7372ms)
+✔ validateCustomCss rejects unsafe characters < > in values (1.0162ms)
+✖ validateCustomCss rejects properties outside the allowlist (3.7916ms)
+✔ validateCustomCss accepts empty string (1.8492ms)
+✔ validateCustomCss rejects oversized input (0.4645ms)
+✔ validateCustomCss accepts valid properties with numeric values (0.4226ms)
+✔ validateCustomCss accepts opacity property (0.6634ms)
+✖ validateHomepageSectionOrder assigns server-derived positions (0.5137ms)
+✔ SQL backup safeguards are explicit and safe (3.1522ms)
+✔ parses a simple file and strips a UTF-8 BOM (5.4791ms)
+✔ supports quoted commas, newlines and escaped quotes (0.6552ms)
+✔ does not add an empty record for a trailing newline (0.65ms)
+✔ returns no records for empty input (0.4788ms)
+✔ rejects an unterminated quoted field (0.8725ms)
+✔ rejects a quote inside an unquoted field (0.4885ms)
+✔ enforces the record limit, including the header (1.6141ms)
+✔ enforces the column limit (8.5543ms)
+✖ non-admin cannot commit a preview (13.8086ms)
+✖ stale preview (collection changed) is rejected (9.3944ms)
+✖ invalid selections are rejected (1.8851ms)
+✖ happy path creates new row and reports summary (1.8055ms)
+✖ builds merge preview with diffs for existing hero (17.3171ms)
+✖ detects staleness when existing row updated between preview and commit (0.696ms)
+✖ validates resolutions: missing field choice is rejected (0.5198ms)
+✖ buildMergePlan produces update when choosing use (0.6505ms)
+✖ buildMergePlan produces unchanged when keep all (0.6508ms)
+✖ skipped row produces no op (0.7651ms)
+✖ previews a valid hero as a new row (9.6225ms)
+✖ classifies a row with an existing slug as a candidate (1.6403ms)
+✖ flags a duplicate slug inside the file on the later row (0.6311ms)
+✖ reports invalid enum, range and boolean values with column names (0.5903ms)
+✔ rejects a header row with a missing column (1.0952ms)
+✔ rejects a header row with an unexpected column (2.698ms)
+✔ rejects a repeated header column (0.8354ms)
+✖ ignores blank rows and keeps spreadsheet row numbers (0.8386ms)
+✖ previews a valid skin and resolves the hero slug (1.7148ms)
+✖ accepts case-insensitive enums, booleans and hero slugs (1.0173ms)
+✖ allows a skin without a hero association (0.591ms)
+✖ flags invalid skin references and values (0.8055ms)
+✖ classifies an existing skin slug (0.5345ms)
+✔ rejects an empty upload (0.3446ms)
+✔ neutralizes formula triggers (7.2464ms)
+✔ leaves ordinary text and numbers alone (0.5901ms)
+✔ quotes cells containing commas, quotes or line breaks (0.9172ms)
+✔ escapes before neutralizing a formula containing a comma (0.5865ms)
+✔ serializes a CRLF-terminated report (0.8838ms)
+✔ builds a flat error report and neutralizes every cell (0.7496ms)
+✔ returns an empty report when there are no errors (0.3807ms)
+✔ accepts a .csv by extension even with an empty MIME type (3.1331ms)
+✔ accepts a CSV MIME type without the extension (0.4882ms)
+✔ rejects an empty file (0.7642ms)
+✔ rejects an oversized file before reading it (0.7022ms)
+✔ rejects a non-CSV file type and name (0.6943ms)
+✔ decodes UTF-8 and strips a BOM (7.5415ms)
+✔ rejects binary content containing NUL bytes (0.5184ms)
+✔ rejects invalid UTF-8 (0.5081ms)
+✔ rejects a blank file after decoding (0.9068ms)
+✔ every allowed type has a canonical extension (5.9485ms)
+✔ declared content types are normalized and allowlisted (0.566ms)
+✔ magic bytes identify each accepted image format (1.4715ms)
+✔ non-image and truncated content is not sniffed as an image (1.6591ms)
+✔ a matching, in-size image candidate passes and records the verified type (35.387ms)
+✔ a mislabelled file is rejected even when the type looks valid (1.3498ms)
+✔ unknown content fails sniffing and is rejected (0.8898ms)
+✔ invalid kinds and content types are rejected (1.2486ms)
+✔ size rules reject empty, oversized, and non-integer values (27.8434ms)
+✔ a declared size that disagrees with the content is rejected (1.3201ms)
+✔ validation without bytes still checks type and size, but flags the signature (1.0422ms)
+✔ object names are built only from a typed kind, mime and a UUID (3.4447ms)
+✔ the object-name pattern rejects traversal and stray names (6.7931ms)
+✔ upload authorization is fail-closed across anonymous and admin scenarios (0.8729ms)
+✔ the admin may upload, but only to the private draft bucket (0.6903ms)
+✔ an unconfigured project denies the upload before touching storage (6.1413ms)
+✔ an anonymous caller is denied and nothing is uploaded (0.9783ms)
+✔ an authenticated non-admin is denied and nothing is uploaded (1.0292ms)
+✔ the admin uploads to the private draft bucket and registers a draft row (4.3948ms)
+✔ the extension of the stored object comes from the content, not the name (1.4356ms)
+✔ mislabeled content is rejected and nothing reaches storage (2.4336ms)
+✔ an unknown kind is rejected and nothing reaches storage (26.7162ms)
+✔ an oversize upload is rejected before storage (16.6391ms)
+✔ a storage failure surfaces as STORE_UNAVAILABLE with no metadata row (1.322ms)
+✔ a registry failure compensates by removing the uploaded object (3.8757ms)
+✔ returns null when the environment is empty (2.7663ms)
+✔ returns null when only one value is present (7.5404ms)
+✔ returns null for blank values (0.7664ms)
+✔ returns null for a malformed url (0.5215ms)
+✔ returns null for a non-http protocol (0.441ms)
+✔ normalizes a valid url to its origin (2.1488ms)
+ℹ tests 198
+ℹ suites 0
+ℹ pass 118
+ℹ fail 80
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8020.2186
+
+✖ failing tests:
+
+test at app\lib\content\hero-admin.test.ts:58:1
+✖ create writes a draft hero for the configured admin (253.4008ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.ts:99:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.test.ts:59:44)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\hero-admin.test.ts:68:1
+✖ create rejects invalid input with field issues and does not write (2.3631ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.ts:99:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.test.ts:69:44)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\hero-admin.test.ts:79:1
+✖ create surfaces a duplicate slug as a typed conflict, not a database error (2.2963ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.ts:99:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.test.ts:82:6)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\hero-admin.test.ts:89:1
+✖ mutations fail closed for a signed-out caller (0.9741ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.ts:99:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.test.ts:90:48)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\hero-admin.test.ts:102:1
+✖ mutations fail closed for a non-admin session (0.8435ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.ts:99:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.test.ts:103:47)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\hero-admin.test.ts:118:1
+✖ mutations report an unconfigured content store (0.8011ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.ts:99:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.test.ts:119:51)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\hero-admin.test.ts:126:1
+✖ update requires an id and validates the payload (1.7587ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at Object.update (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.ts:115:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.test.ts:139:30)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\hero-form.test.ts:40:1
+✖ parseHeroForm accepts a complete valid submission (299.9955ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.test.ts:41:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\hero-form.test.ts:59:1
+✖ parseHeroForm treats blank optionals as null and absent checkboxes as false (1.7205ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.test.ts:67:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at app\lib\content\hero-form.test.ts:77:1
+✖ parseHeroForm reports required fields (1.6057ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.test.ts:78:23)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\hero-form.test.ts:91:1
+✖ parseHeroForm rejects a bad slug and a duplicate role (10.7406ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.test.ts:92:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\hero-form.test.ts:105:1
+✖ parseHeroForm enforces numeric bounds (3.4485ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.test.ts:106:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\hero-form.test.ts:125:1
+✖ parseHeroForm requires a UUID portrait media id (10.9002ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.test.ts:126:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\hero-form.test.ts:143:1
+✖ heroToFormValues round-trips a stored hero (1.0249ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.test.ts:178:20)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\hero-form.test.ts:204:1
+✖ EMPTY_HERO_FORM_VALUES parses as a valid starter except required fields (0.7242ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.test.ts:205:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\service.test.ts:131:1
+✖ an admin can create, read and update a draft hero (1.4866ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at Object.createDraftHero (file:///D:/Mlbb/My-Mlbb/app/lib/content/in-memory-service.ts:328:25)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/service.test.ts:134:33)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\service.test.ts:171:1
+✖ a create with invalid input is VALIDATION_FAILED with field issues (15.0752ms)
+  AssertionError [ERR_ASSERTION]: expected a ContentServiceError, got ReferenceError: isPlainObject is not defined
+      at assertCode (file:///D:/Mlbb/My-Mlbb/app/lib/content/service.test.ts:51:10)
+      at Object.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/service.test.ts:177:7)
+      at expectedException (node:assert:578:17)
+      at expectsError (node:assert:703:21)
+      at strict.rejects (node:assert:769:3)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/service.test.ts:174:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at app\lib\content\service.test.ts:185:1
+✖ duplicate slugs are a CONFLICT (1.1584ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at Object.createDraftHero (file:///D:/Mlbb/My-Mlbb/app/lib/content/in-memory-service.ts:328:25)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/service.test.ts:188:17)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\service.test.ts:194:1
+✖ a skin referencing an unknown hero is DEPENDENCY_MISSING (1.5418ms)
+  AssertionError [ERR_ASSERTION]: expected a ContentServiceError, got ReferenceError: isPlainObject is not defined
+      at assertCode (file:///D:/Mlbb/My-Mlbb/app/lib/content/service.test.ts:51:10)
+      at Object.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/service.test.ts:204:17)
+      at expectedException (node:assert:578:17)
+      at expectsError (node:assert:703:21)
+      at strict.rejects (node:assert:769:3)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/service.test.ts:197:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at app\lib\content\service.test.ts:386:1
+✖ each in-memory service instance is isolated (0.5215ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at Object.createDraftHero (file:///D:/Mlbb/My-Mlbb/app/lib/content/in-memory-service.ts:328:25)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/service.test.ts:390:15)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\skin-admin.test.ts:60:1
+✖ create writes a draft skin for the configured admin (176.8402ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.ts:108:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.test.ts:61:44)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\skin-admin.test.ts:72:1
+✖ create records a hero association when the hero exists (1.4537ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.ts:108:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.test.ts:75:6)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\skin-admin.test.ts:82:1
+✖ create rejects an unknown hero association with a caller-safe message (0.8943ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.ts:108:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.test.ts:83:44)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\skin-admin.test.ts:90:1
+✖ create rejects invalid input with field issues and does not write (1.1166ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.ts:108:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.test.ts:92:57)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\skin-admin.test.ts:105:1
+✖ create surfaces a duplicate slug as a typed conflict, not a database error (1.3059ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.ts:108:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.test.ts:108:6)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\skin-admin.test.ts:115:1
+✖ mutations fail closed for a signed-out caller (7.7977ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.ts:108:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.test.ts:116:48)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\skin-admin.test.ts:128:1
+✖ mutations fail closed for a non-admin session (1.0593ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.ts:108:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.test.ts:129:47)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\skin-admin.test.ts:144:1
+✖ mutations report an unconfigured content store (0.87ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.ts:108:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.test.ts:145:51)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\skin-admin.test.ts:152:1
+✖ update requires an id and validates the payload (2.4658ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at Object.update (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.ts:124:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.test.ts:167:30)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\skin-form.test.ts:41:1
+✖ parseSkinForm accepts a complete valid submission (185.1764ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.test.ts:42:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\skin-form.test.ts:60:1
+✖ parseSkinForm treats blank optionals as null and absent checkboxes as false (2.679ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.test.ts:61:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at app\lib\content\skin-form.test.ts:90:1
+✖ parseSkinForm rejects a missing name and rarity (0.8288ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.test.ts:91:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\skin-form.test.ts:99:1
+✖ parseSkinForm rejects an invalid slug and unknown rarity/variant (0.5656ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.test.ts:100:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\skin-form.test.ts:111:1
+✖ parseSkinForm enforces the acquisition date format and bounds (0.5923ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.test.ts:112:21)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\skin-form.test.ts:127:1
+✖ parseSkinForm enforces the series and milestone length limits (15.8808ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.test.ts:128:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\skin-form.test.ts:141:1
+✖ parseSkinForm rejects a non-UUID hero association before it reaches PostgREST (0.879ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.test.ts:142:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\skin-form.test.ts:150:1
+✖ parseSkinForm rejects a non-UUID splash art reference (6.4983ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.test.ts:151:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\skin-form.test.ts:162:1
+✖ parseSkinForm reports both bad references together (1.4226ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.test.ts:163:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\skin-form.test.ts:174:1
+✖ skinToFormValues round-trips through parseSkinForm (1.3428ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.test.ts:204:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:22:1
+✖ validateHeroInput accepts a minimal hero and fills defaults (14.297ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:23:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\validation.test.ts:46:1
+✖ validateHeroInput trims strings and rounds winRate to numeric(5,2) (1.0012ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:47:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at app\lib\content\validation.test.ts:60:1
+✖ validateSkinInput accepts a minimal skin (0.9047ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:61:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:74:1
+✖ validateTimelineEntryInput accepts a minimal entry (1.0407ms)
+  ReferenceError: isPlainObject is not defined
+      at validateTimelineEntryInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:265:3)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:75:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:89:1
+✖ validators reject non-object payloads with an empty path (0.6746ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:91:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:100:1
+✖ validateHeroInput reports the offending field paths (0.4063ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:101:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:111:1
+✖ validateHeroInput enforces the slug pattern (0.3683ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:112:15)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:127:1
+✖ validateHeroInput rejects a secondary role equal to the primary (0.3591ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:128:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:140:1
+✖ validateHeroInput bounds masteryLevel and winRate (0.4683ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:141:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:157:1
+✖ validateSkinInput rejects an unknown rarity (16.564ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:158:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:169:1
+✖ validateSkinInput validates the ISO date and its bounds (6.8404ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:170:21)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:197:1
+✖ validateTimelineEntryInput requires an occurredOn date (0.7933ms)
+  ReferenceError: isPlainObject is not defined
+      at validateTimelineEntryInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:265:3)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:198:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:208:1
+✖ validateTimelineEntryInput rejects an unknown kind (0.5906ms)
+  ReferenceError: isPlainObject is not defined
+      at validateTimelineEntryInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:265:3)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:209:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:222:1
+✖ validateHomepageSections rejects duplicate positions (1.002ms)
+  ReferenceError: isPlainObject is not defined
+      at file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:339:5
+      at Array.map (<anonymous>)
+      at validateHomepageSectionOrder (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:337:23)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:223:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\validation.test.ts:233:1
+✖ validateHomepageSections enforces the section-id pattern (0.352ms)
+  ReferenceError: isPlainObject is not defined
+      at file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:339:5
+      at Array.map (<anonymous>)
+      at validateHomepageSectionOrder (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:337:23)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:234:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\validation.test.ts:245:1
+✖ validateHomepageSections accepts a well-formed list (0.3761ms)
+  ReferenceError: isPlainObject is not defined
+      at file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:339:5
+      at Array.map (<anonymous>)
+      at validateHomepageSectionOrder (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:337:23)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:246:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\validation.test.ts:268:1
+✖ validateHomepageSectionOrder rejects unknown module ids (0.3926ms)
+  ReferenceError: isPlainObject is not defined
+      at file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:339:5
+      at Array.map (<anonymous>)
+      at validateHomepageSectionOrder (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:337:23)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:269:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\validation.test.ts:282:1
+✖ validateHomepageSectionOrder rejects missing modules (0.3839ms)
+  ReferenceError: isPlainObject is not defined
+      at file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:339:5
+      at Array.map (<anonymous>)
+      at validateHomepageSectionOrder (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:337:23)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:283:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\validation.test.ts:292:1
+✖ validateHomepageSectionOrder rejects non-boolean isEnabled (0.3449ms)
+  ReferenceError: isPlainObject is not defined
+      at file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:339:5
+      at Array.map (<anonymous>)
+      at validateHomepageSectionOrder (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:337:23)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:293:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\validation.test.ts:360:1
+✖ validateCustomCss rejects properties outside the allowlist (3.7916ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:362:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at app\lib\content\validation.test.ts:413:1
+✖ validateHomepageSectionOrder assigns server-derived positions (0.5137ms)
+  ReferenceError: isPlainObject is not defined
+      at file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:339:5
+      at Array.map (<anonymous>)
+      at validateHomepageSectionOrder (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:337:23)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:414:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\import\merge-commit.test.ts:51:1
+✖ non-admin cannot commit a preview (13.8086ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildMergePreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.ts:198:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge-commit.test.ts:54:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\import\merge-commit.test.ts:66:1
+✖ stale preview (collection changed) is rejected (9.3944ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildMergePreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.ts:198:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge-commit.test.ts:69:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\merge-commit.test.ts:95:1
+✖ invalid selections are rejected (1.8851ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildMergePreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.ts:198:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge-commit.test.ts:98:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\merge-commit.test.ts:110:1
+✖ happy path creates new row and reports summary (1.8055ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildMergePreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.ts:198:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge-commit.test.ts:113:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\merge.test.ts:141:1
+✖ builds merge preview with diffs for existing hero (17.3171ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildMergePreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.ts:198:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.test.ts:148:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\import\merge.test.ts:162:1
+✖ detects staleness when existing row updated between preview and commit (0.696ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildMergePreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.ts:198:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.test.ts:165:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\merge.test.ts:180:1
+✖ validates resolutions: missing field choice is rejected (0.5198ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildMergePreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.ts:198:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.test.ts:183:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\merge.test.ts:192:1
+✖ buildMergePlan produces update when choosing use (0.6505ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildMergePreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.ts:198:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.test.ts:195:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\merge.test.ts:210:1
+✖ buildMergePlan produces unchanged when keep all (0.6508ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildMergePreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.ts:198:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.test.ts:213:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\merge.test.ts:226:1
+✖ skipped row produces no op (0.7651ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildMergePreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.ts:198:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.test.ts:228:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\preview.test.ts:70:1
+✖ previews a valid hero as a new row (9.6225ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildImportPreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:134:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.test.ts:71:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\import\preview.test.ts:87:1
+✖ classifies a row with an existing slug as a candidate (1.6403ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildImportPreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:134:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.test.ts:88:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\preview.test.ts:101:1
+✖ flags a duplicate slug inside the file on the later row (0.6311ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildImportPreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:134:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.test.ts:102:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\preview.test.ts:118:1
+✖ reports invalid enum, range and boolean values with column names (0.5903ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildImportPreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:134:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.test.ts:119:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\preview.test.ts:178:1
+✖ ignores blank rows and keeps spreadsheet row numbers (0.8386ms)
+  ReferenceError: isPlainObject is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:120:3)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildImportPreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:134:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.test.ts:180:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\preview.test.ts:198:1
+✖ previews a valid skin and resolves the hero slug (1.7148ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at collectSkinPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:394:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:231:11)
+      at buildImportPreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:134:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.test.ts:199:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\preview.test.ts:212:1
+✖ accepts case-insensitive enums, booleans and hero slugs (1.0173ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at collectSkinPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:394:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:231:11)
+      at buildImportPreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:134:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.test.ts:213:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\preview.test.ts:232:1
+✖ allows a skin without a hero association (0.591ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at collectSkinPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:394:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:231:11)
+      at buildImportPreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:134:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.test.ts:233:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\preview.test.ts:243:1
+✖ flags invalid skin references and values (0.8055ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at collectSkinPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:394:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:231:11)
+      at buildImportPreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:134:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.test.ts:244:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\preview.test.ts:267:1
+✖ classifies an existing skin slug (0.5345ms)
+  ReferenceError: isPlainObject is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:206:3)
+      at collectSkinPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:394:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:231:11)
+      at buildImportPreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:134:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.test.ts:268:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)

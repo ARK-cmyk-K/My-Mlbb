@@ -1,0 +1,1312 @@
+
+> mlbb-showcase@0.1.0 test
+> node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test "app/**/*.test.ts" --testPathPattern=validation
+
+✔ denies when Supabase is not configured, even with a user (10.7005ms)
+✔ denies unauthenticated access to the dashboard (18.398ms)
+✔ denies an expired or invalid session (no verified user) (1.1446ms)
+✔ denies an authenticated non-admin user (0.5073ms)
+✔ allows only the authenticated configured admin (0.5002ms)
+✔ sanitizeRedirectTarget keeps same-origin dashboard paths (0.853ms)
+✔ sanitizeRedirectTarget rejects open-redirect attempts (3.1573ms)
+✔ sanitizeRedirectTarget refuses paths outside the dashboard (0.6503ms)
+✔ sanitizeRedirectTarget rejects control characters (0.9239ms)
+✔ a draft row can be published or archived (2.7573ms)
+✔ a published row can be unpublished or archived (0.4301ms)
+✔ an archived row can only be restored to draft (0.3655ms)
+✔ illegal transitions return null (0.4926ms)
+✔ allowedTransitions agrees with resolveDraftTransition (2.3686ms)
+✔ every publication state has a display label (0.593ms)
+✔ every error code has an HTTP status and a default message (3.7498ms)
+✔ the status map distinguishes auth, validation and storage faults (0.4798ms)
+✔ field issues are carried through for VALIDATION_FAILED (13.3587ms)
+✔ errors without issues default to an empty list (0.6802ms)
+✔ isContentServiceError narrows unknown values (0.6922ms)
+✔ serialization omits the server-only cause (0.7587ms)
+✖ create writes a draft hero for the configured admin (103.189ms)
+✖ create rejects invalid input with field issues and does not write (1.6837ms)
+✖ create surfaces a duplicate slug as a typed conflict, not a database error (2.1591ms)
+✖ mutations fail closed for a signed-out caller (0.9633ms)
+✖ mutations fail closed for a non-admin session (1.9271ms)
+✖ mutations report an unconfigured content store (0.9483ms)
+✖ update requires an id and validates the payload (2.3088ms)
+✔ delete removes the hero and reports a missing target (3.0293ms)
+✔ transition applies legal moves and rejects illegal ones (2.1229ms)
+✖ parseHeroForm accepts a complete valid submission (157.8837ms)
+✖ parseHeroForm treats blank optionals as null and absent checkboxes as false (0.879ms)
+✖ parseHeroForm reports required fields (0.5673ms)
+✖ parseHeroForm rejects a bad slug and a duplicate role (0.5453ms)
+✖ parseHeroForm enforces numeric bounds (1.0176ms)
+✖ parseHeroForm requires a UUID portrait media id (0.5592ms)
+✔ issuesByPath keeps the first message per field (13.3814ms)
+✖ heroToFormValues round-trips a stored hero (1.2148ms)
+✔ slugify produces schema-valid slugs (2.5547ms)
+✔ isUuid matches canonical UUIDs only (1.8615ms)
+✖ EMPTY_HERO_FORM_VALUES parses as a valid starter except required fields (1.0744ms)
+✔ draft reads reject an unauthenticated caller (10.5869ms)
+✔ draft reads reject an authenticated non-admin (1.2278ms)
+✔ draft reads fail closed when Supabase is not configured (0.7789ms)
+✔ draft writes reject an unauthenticated caller (1.0808ms)
+✔ draft writes reject an authenticated non-admin (1.3098ms)
+✖ an admin can create, read and update a draft hero (2.9044ms)
+✔ an admin can delete a draft hero (1.3487ms)
+✔ reading a missing draft hero is NOT_FOUND (0.8245ms)
+✖ a create with invalid input is VALIDATION_FAILED with field issues (2.0692ms)
+✖ duplicate slugs are a CONFLICT (5.3744ms)
+✖ a skin referencing an unknown hero is DEPENDENCY_MISSING (1.4873ms)
+✔ an admin can publish then unpublish a draft hero (0.7944ms)
+✔ archiving stamps archivedAt and restore clears it (0.5651ms)
+✔ an illegal transition is INVALID_TRANSITION (6.3106ms)
+✔ transitioning a missing row is NOT_FOUND (0.5743ms)
+✔ draft lists exclude archived rows by default (2.9775ms)
+✔ skins can be scoped to a hero (1.5025ms)
+✔ public reads work without any session (0.8661ms)
+✔ public reads fail closed when Supabase is not configured (0.6923ms)
+✔ getActiveRelease returns null when nothing is published (0.3634ms)
+✔ getPublishedRelease is NO_PUBLISHED_RELEASE when nothing is published (0.5526ms)
+✖ each in-memory service instance is isolated (0.625ms)
+✔ SeedData is re-exported for test authors (0.2624ms)
+✖ create writes a draft skin for the configured admin (79.565ms)
+✖ create records a hero association when the hero exists (3.0139ms)
+✖ create rejects an unknown hero association with a caller-safe message (1.4731ms)
+✖ create rejects invalid input with field issues and does not write (1.1856ms)
+✖ create surfaces a duplicate slug as a typed conflict, not a database error (1.2678ms)
+✖ mutations fail closed for a signed-out caller (0.9653ms)
+✖ mutations fail closed for a non-admin session (1.0486ms)
+✖ mutations report an unconfigured content store (1.0335ms)
+✖ update requires an id and validates the payload (2.0277ms)
+✔ delete removes the skin and reports a missing target (2.2921ms)
+✔ transition applies legal moves and rejects illegal ones (1.7314ms)
+✖ parseSkinForm accepts a complete valid submission (83.5809ms)
+✖ parseSkinForm treats blank optionals as null and absent checkboxes as false (0.833ms)
+✖ parseSkinForm rejects a missing name and rarity (1.4994ms)
+✖ parseSkinForm rejects an invalid slug and unknown rarity/variant (0.7389ms)
+✖ parseSkinForm enforces the acquisition date format and bounds (0.7001ms)
+✖ parseSkinForm enforces the series and milestone length limits (0.6666ms)
+✖ parseSkinForm rejects a non-UUID hero association before it reaches PostgREST (0.529ms)
+✖ parseSkinForm rejects a non-UUID splash art reference (0.6144ms)
+✖ parseSkinForm reports both bad references together (0.7295ms)
+✖ skinToFormValues round-trips through parseSkinForm (1.3556ms)
+✔ EMPTY_SKIN_FORM_VALUES has no preselected values (2.0855ms)
+✖ validateHeroInput accepts a minimal hero and fills defaults (5.1176ms)
+✖ validateHeroInput trims strings and rounds winRate to numeric(5,2) (0.447ms)
+✖ validateSkinInput accepts a minimal skin (0.7007ms)
+✖ validateTimelineEntryInput accepts a minimal entry (0.6494ms)
+✔ validators reject non-object payloads with an empty path (4.6824ms)
+✖ validateHeroInput reports the offending field paths (0.4418ms)
+✖ validateHeroInput enforces the slug pattern (1.339ms)
+✖ validateHeroInput rejects a secondary role equal to the primary (0.5237ms)
+✖ validateHeroInput bounds masteryLevel and winRate (0.9034ms)
+✖ validateSkinInput rejects an unknown rarity (0.7003ms)
+✖ validateSkinInput validates the ISO date and its bounds (0.4657ms)
+✖ validateTimelineEntryInput requires an occurredOn date (0.3622ms)
+✖ validateTimelineEntryInput rejects an unknown kind (0.3843ms)
+✖ validateHomepageSections rejects duplicate positions (0.7246ms)
+✖ validateHomepageSections enforces the section-id pattern (0.481ms)
+✖ validateHomepageSections accepts a well-formed list (0.5988ms)
+✔ validateHomepageSectionOrder rejects non-array payloads (0.681ms)
+✖ validateHomepageSectionOrder rejects unknown module ids (0.3821ms)
+✖ validateHomepageSectionOrder rejects missing modules (0.4534ms)
+✖ validateHomepageSectionOrder rejects non-boolean isEnabled (0.361ms)
+✔ validateCustomCss accepts safe CSS with allowed properties and values (1.9291ms)
+✔ validateCustomCss rejects @import rules (0.4716ms)
+✔ validateCustomCss rejects url() functions (0.4578ms)
+✔ validateCustomCss rejects expression() values (0.3185ms)
+✔ validateCustomCss rejects javascript: values (0.8636ms)
+✔ validateCustomCss rejects unsafe characters < > in values (0.4477ms)
+✖ validateCustomCss rejects properties outside the allowlist (2.2702ms)
+✔ validateCustomCss accepts empty string (0.3778ms)
+✔ validateCustomCss rejects oversized input (0.3353ms)
+✔ validateCustomCss accepts valid properties with numeric values (0.5939ms)
+✔ validateCustomCss accepts opacity property (0.3051ms)
+✖ validateHomepageSectionOrder assigns server-derived positions (0.3591ms)
+✔ SQL backup safeguards are explicit and safe (2.5849ms)
+✔ parses a simple file and strips a UTF-8 BOM (5.5723ms)
+✔ supports quoted commas, newlines and escaped quotes (2.2102ms)
+✔ does not add an empty record for a trailing newline (4.4326ms)
+✔ returns no records for empty input (3.0162ms)
+✔ rejects an unterminated quoted field (1.1514ms)
+✔ rejects a quote inside an unquoted field (0.5417ms)
+✔ enforces the record limit, including the header (0.518ms)
+✔ enforces the column limit (0.644ms)
+✖ non-admin cannot commit a preview (8.1265ms)
+✖ stale preview (collection changed) is rejected (1.1805ms)
+✖ invalid selections are rejected (2.9072ms)
+✖ happy path creates new row and reports summary (1.4435ms)
+✖ builds merge preview with diffs for existing hero (6.1333ms)
+✖ detects staleness when existing row updated between preview and commit (0.7817ms)
+✖ validates resolutions: missing field choice is rejected (0.5812ms)
+✖ buildMergePlan produces update when choosing use (0.7318ms)
+✖ buildMergePlan produces unchanged when keep all (0.7013ms)
+✖ skipped row produces no op (0.6955ms)
+✖ previews a valid hero as a new row (5.3884ms)
+✖ classifies a row with an existing slug as a candidate (0.6092ms)
+✖ flags a duplicate slug inside the file on the later row (0.5242ms)
+✖ reports invalid enum, range and boolean values with column names (0.5747ms)
+✔ rejects a header row with a missing column (1.5632ms)
+✔ rejects a header row with an unexpected column (0.6204ms)
+✔ rejects a repeated header column (0.4927ms)
+✖ ignores blank rows and keeps spreadsheet row numbers (0.5699ms)
+✖ previews a valid skin and resolves the hero slug (1.4964ms)
+✖ accepts case-insensitive enums, booleans and hero slugs (1.0222ms)
+✖ allows a skin without a hero association (0.5694ms)
+✖ flags invalid skin references and values (1.9284ms)
+✖ classifies an existing skin slug (0.7681ms)
+✔ rejects an empty upload (0.4565ms)
+✔ neutralizes formula triggers (3.673ms)
+✔ leaves ordinary text and numbers alone (0.6268ms)
+✔ quotes cells containing commas, quotes or line breaks (0.6512ms)
+✔ escapes before neutralizing a formula containing a comma (0.4497ms)
+✔ serializes a CRLF-terminated report (0.9131ms)
+✔ builds a flat error report and neutralizes every cell (0.9888ms)
+✔ returns an empty report when there are no errors (0.6529ms)
+✔ accepts a .csv by extension even with an empty MIME type (4.9438ms)
+✔ accepts a CSV MIME type without the extension (0.529ms)
+✔ rejects an empty file (0.6323ms)
+✔ rejects an oversized file before reading it (0.6084ms)
+✔ rejects a non-CSV file type and name (0.4478ms)
+✔ decodes UTF-8 and strips a BOM (2.5699ms)
+✔ rejects binary content containing NUL bytes (0.5942ms)
+✔ rejects invalid UTF-8 (0.4925ms)
+✔ rejects a blank file after decoding (0.5643ms)
+✔ every allowed type has a canonical extension (5.3873ms)
+✔ declared content types are normalized and allowlisted (10.2902ms)
+✔ magic bytes identify each accepted image format (1.3814ms)
+✔ non-image and truncated content is not sniffed as an image (0.6653ms)
+✔ a matching, in-size image candidate passes and records the verified type (2.6791ms)
+✔ a mislabelled file is rejected even when the type looks valid (1.051ms)
+✔ unknown content fails sniffing and is rejected (1.5684ms)
+✔ invalid kinds and content types are rejected (0.7564ms)
+✔ size rules reject empty, oversized, and non-integer values (3.2116ms)
+✔ a declared size that disagrees with the content is rejected (2.2337ms)
+✔ validation without bytes still checks type and size, but flags the signature (2.7902ms)
+✔ object names are built only from a typed kind, mime and a UUID (0.8853ms)
+✔ the object-name pattern rejects traversal and stray names (1.3312ms)
+✔ upload authorization is fail-closed across anonymous and admin scenarios (0.5672ms)
+✔ the admin may upload, but only to the private draft bucket (0.5467ms)
+✔ an unconfigured project denies the upload before touching storage (9.9563ms)
+✔ an anonymous caller is denied and nothing is uploaded (1.1261ms)
+✔ an authenticated non-admin is denied and nothing is uploaded (0.717ms)
+✔ the admin uploads to the private draft bucket and registers a draft row (4.1575ms)
+✔ the extension of the stored object comes from the content, not the name (1.826ms)
+✔ mislabeled content is rejected and nothing reaches storage (1.1992ms)
+✔ an unknown kind is rejected and nothing reaches storage (1.1866ms)
+✔ an oversize upload is rejected before storage (12.7935ms)
+✔ a storage failure surfaces as STORE_UNAVAILABLE with no metadata row (1.4475ms)
+✔ a registry failure compensates by removing the uploaded object (2.0943ms)
+✔ returns null when the environment is empty (2.1106ms)
+✔ returns null when only one value is present (0.339ms)
+✔ returns null for blank values (0.3811ms)
+✔ returns null for a malformed url (0.4437ms)
+✔ returns null for a non-http protocol (0.4965ms)
+✔ normalizes a valid url to its origin (1.5742ms)
+ℹ tests 198
+ℹ suites 0
+ℹ pass 119
+ℹ fail 79
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3571.2024
+
+✖ failing tests:
+
+test at app\lib\content\hero-admin.test.ts:58:1
+✖ create writes a draft hero for the configured admin (103.189ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.ts:99:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.test.ts:59:44)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\hero-admin.test.ts:68:1
+✖ create rejects invalid input with field issues and does not write (1.6837ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.ts:99:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.test.ts:69:44)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\hero-admin.test.ts:79:1
+✖ create surfaces a duplicate slug as a typed conflict, not a database error (2.1591ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.ts:99:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.test.ts:82:6)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\hero-admin.test.ts:89:1
+✖ mutations fail closed for a signed-out caller (0.9633ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.ts:99:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.test.ts:90:48)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\hero-admin.test.ts:102:1
+✖ mutations fail closed for a non-admin session (1.9271ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.ts:99:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.test.ts:103:47)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\hero-admin.test.ts:118:1
+✖ mutations report an unconfigured content store (0.9483ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.ts:99:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.test.ts:119:51)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\hero-admin.test.ts:126:1
+✖ update requires an id and validates the payload (2.3088ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at Object.update (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.ts:115:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-admin.test.ts:139:30)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\hero-form.test.ts:40:1
+✖ parseHeroForm accepts a complete valid submission (157.8837ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.test.ts:41:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\hero-form.test.ts:59:1
+✖ parseHeroForm treats blank optionals as null and absent checkboxes as false (0.879ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.test.ts:67:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at app\lib\content\hero-form.test.ts:77:1
+✖ parseHeroForm reports required fields (0.5673ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.test.ts:78:23)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\hero-form.test.ts:91:1
+✖ parseHeroForm rejects a bad slug and a duplicate role (0.5453ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.test.ts:92:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\hero-form.test.ts:105:1
+✖ parseHeroForm enforces numeric bounds (1.0176ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.test.ts:106:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\hero-form.test.ts:125:1
+✖ parseHeroForm requires a UUID portrait media id (0.5592ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.test.ts:126:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\hero-form.test.ts:143:1
+✖ heroToFormValues round-trips a stored hero (1.2148ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.test.ts:178:20)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\hero-form.test.ts:204:1
+✖ EMPTY_HERO_FORM_VALUES parses as a valid starter except required fields (1.0744ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at parseHeroForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.ts:103:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/hero-form.test.ts:205:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\service.test.ts:131:1
+✖ an admin can create, read and update a draft hero (2.9044ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at Object.createDraftHero (file:///D:/Mlbb/My-Mlbb/app/lib/content/in-memory-service.ts:328:25)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/service.test.ts:134:33)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\service.test.ts:171:1
+✖ a create with invalid input is VALIDATION_FAILED with field issues (2.0692ms)
+  AssertionError [ERR_ASSERTION]: expected a ContentServiceError, got ReferenceError: requiredTrimmedString is not defined
+      at assertCode (file:///D:/Mlbb/My-Mlbb/app/lib/content/service.test.ts:51:10)
+      at Object.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/service.test.ts:177:7)
+      at expectedException (node:assert:578:17)
+      at expectsError (node:assert:703:21)
+      at strict.rejects (node:assert:769:3)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/service.test.ts:174:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at app\lib\content\service.test.ts:185:1
+✖ duplicate slugs are a CONFLICT (5.3744ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at Object.createDraftHero (file:///D:/Mlbb/My-Mlbb/app/lib/content/in-memory-service.ts:328:25)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/service.test.ts:188:17)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\service.test.ts:194:1
+✖ a skin referencing an unknown hero is DEPENDENCY_MISSING (1.4873ms)
+  AssertionError [ERR_ASSERTION]: expected a ContentServiceError, got ReferenceError: requiredTrimmedString is not defined
+      at assertCode (file:///D:/Mlbb/My-Mlbb/app/lib/content/service.test.ts:51:10)
+      at Object.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/service.test.ts:204:17)
+      at expectedException (node:assert:578:17)
+      at expectsError (node:assert:703:21)
+      at strict.rejects (node:assert:769:3)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/service.test.ts:197:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at app\lib\content\service.test.ts:386:1
+✖ each in-memory service instance is isolated (0.625ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at Object.createDraftHero (file:///D:/Mlbb/My-Mlbb/app/lib/content/in-memory-service.ts:328:25)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/service.test.ts:390:15)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\skin-admin.test.ts:60:1
+✖ create writes a draft skin for the configured admin (79.565ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.ts:108:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.test.ts:61:44)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\skin-admin.test.ts:72:1
+✖ create records a hero association when the hero exists (3.0139ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.ts:108:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.test.ts:75:6)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\skin-admin.test.ts:82:1
+✖ create rejects an unknown hero association with a caller-safe message (1.4731ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.ts:108:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.test.ts:83:44)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\skin-admin.test.ts:90:1
+✖ create rejects invalid input with field issues and does not write (1.1856ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.ts:108:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.test.ts:92:57)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\skin-admin.test.ts:105:1
+✖ create surfaces a duplicate slug as a typed conflict, not a database error (1.2678ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.ts:108:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.test.ts:108:6)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\skin-admin.test.ts:115:1
+✖ mutations fail closed for a signed-out caller (0.9653ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.ts:108:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.test.ts:116:48)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\skin-admin.test.ts:128:1
+✖ mutations fail closed for a non-admin session (1.0486ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.ts:108:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.test.ts:129:47)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\skin-admin.test.ts:144:1
+✖ mutations report an unconfigured content store (1.0335ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at Object.create (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.ts:108:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.test.ts:145:51)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\skin-admin.test.ts:152:1
+✖ update requires an id and validates the payload (2.0277ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at Object.update (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.ts:124:20)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-admin.test.ts:167:30)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\skin-form.test.ts:41:1
+✖ parseSkinForm accepts a complete valid submission (83.5809ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.test.ts:42:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\skin-form.test.ts:60:1
+✖ parseSkinForm treats blank optionals as null and absent checkboxes as false (0.833ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.test.ts:61:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at app\lib\content\skin-form.test.ts:90:1
+✖ parseSkinForm rejects a missing name and rarity (1.4994ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.test.ts:91:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\skin-form.test.ts:99:1
+✖ parseSkinForm rejects an invalid slug and unknown rarity/variant (0.7389ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.test.ts:100:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\skin-form.test.ts:111:1
+✖ parseSkinForm enforces the acquisition date format and bounds (0.7001ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.test.ts:112:21)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\skin-form.test.ts:127:1
+✖ parseSkinForm enforces the series and milestone length limits (0.6666ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.test.ts:128:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\skin-form.test.ts:141:1
+✖ parseSkinForm rejects a non-UUID hero association before it reaches PostgREST (0.529ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.test.ts:142:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\skin-form.test.ts:150:1
+✖ parseSkinForm rejects a non-UUID splash art reference (0.6144ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.test.ts:151:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\skin-form.test.ts:162:1
+✖ parseSkinForm reports both bad references together (0.7295ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.test.ts:163:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\skin-form.test.ts:174:1
+✖ skinToFormValues round-trips through parseSkinForm (1.3556ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at parseSkinForm (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.ts:124:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/skin-form.test.ts:204:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:22:1
+✖ validateHeroInput accepts a minimal hero and fills defaults (5.1176ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:23:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\validation.test.ts:46:1
+✖ validateHeroInput trims strings and rounds winRate to numeric(5,2) (0.447ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:47:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at app\lib\content\validation.test.ts:60:1
+✖ validateSkinInput accepts a minimal skin (0.7007ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:61:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:74:1
+✖ validateTimelineEntryInput accepts a minimal entry (0.6494ms)
+  ReferenceError: optionalDate is not defined
+      at validateTimelineEntryInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:274:22)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:75:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:100:1
+✖ validateHeroInput reports the offending field paths (0.4418ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:101:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:111:1
+✖ validateHeroInput enforces the slug pattern (1.339ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:112:15)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:127:1
+✖ validateHeroInput rejects a secondary role equal to the primary (0.5237ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:128:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:140:1
+✖ validateHeroInput bounds masteryLevel and winRate (0.9034ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:141:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:157:1
+✖ validateSkinInput rejects an unknown rarity (0.7003ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:158:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:169:1
+✖ validateSkinInput validates the ISO date and its bounds (0.4657ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:170:21)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:197:1
+✖ validateTimelineEntryInput requires an occurredOn date (0.3622ms)
+  ReferenceError: optionalDate is not defined
+      at validateTimelineEntryInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:274:22)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:198:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:208:1
+✖ validateTimelineEntryInput rejects an unknown kind (0.3843ms)
+  ReferenceError: optionalDate is not defined
+      at validateTimelineEntryInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:274:22)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:209:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at app\lib\content\validation.test.ts:222:1
+✖ validateHomepageSections rejects duplicate positions (0.7246ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:349:23
+      at Array.map (<anonymous>)
+      at validateHomepageSectionOrder (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:342:23)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:223:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\validation.test.ts:233:1
+✖ validateHomepageSections enforces the section-id pattern (0.481ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:349:23
+      at Array.map (<anonymous>)
+      at validateHomepageSectionOrder (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:342:23)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:234:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\validation.test.ts:245:1
+✖ validateHomepageSections accepts a well-formed list (0.5988ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:349:23
+      at Array.map (<anonymous>)
+      at validateHomepageSectionOrder (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:342:23)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:246:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\validation.test.ts:268:1
+✖ validateHomepageSectionOrder rejects unknown module ids (0.3821ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:349:23
+      at Array.map (<anonymous>)
+      at validateHomepageSectionOrder (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:342:23)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:269:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\validation.test.ts:282:1
+✖ validateHomepageSectionOrder rejects missing modules (0.4534ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:349:23
+      at Array.map (<anonymous>)
+      at validateHomepageSectionOrder (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:342:23)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:283:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\validation.test.ts:292:1
+✖ validateHomepageSectionOrder rejects non-boolean isEnabled (0.361ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:349:23
+      at Array.map (<anonymous>)
+      at validateHomepageSectionOrder (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:342:23)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:293:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\content\validation.test.ts:360:1
+✖ validateCustomCss rejects properties outside the allowlist (2.2702ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:362:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at app\lib\content\validation.test.ts:413:1
+✖ validateHomepageSectionOrder assigns server-derived positions (0.3591ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:349:23
+      at Array.map (<anonymous>)
+      at validateHomepageSectionOrder (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:342:23)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.test.ts:414:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\import\merge-commit.test.ts:51:1
+✖ non-admin cannot commit a preview (8.1265ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildMergePreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.ts:198:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge-commit.test.ts:54:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\import\merge-commit.test.ts:66:1
+✖ stale preview (collection changed) is rejected (1.1805ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildMergePreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.ts:198:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge-commit.test.ts:69:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\merge-commit.test.ts:95:1
+✖ invalid selections are rejected (2.9072ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildMergePreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.ts:198:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge-commit.test.ts:98:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\merge-commit.test.ts:110:1
+✖ happy path creates new row and reports summary (1.4435ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildMergePreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.ts:198:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge-commit.test.ts:113:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\merge.test.ts:141:1
+✖ builds merge preview with diffs for existing hero (6.1333ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildMergePreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.ts:198:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.test.ts:148:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\import\merge.test.ts:162:1
+✖ detects staleness when existing row updated between preview and commit (0.7817ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildMergePreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.ts:198:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.test.ts:165:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\merge.test.ts:180:1
+✖ validates resolutions: missing field choice is rejected (0.5812ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildMergePreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.ts:198:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.test.ts:183:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\merge.test.ts:192:1
+✖ buildMergePlan produces update when choosing use (0.7318ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildMergePreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.ts:198:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.test.ts:195:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\merge.test.ts:210:1
+✖ buildMergePlan produces unchanged when keep all (0.7013ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildMergePreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.ts:198:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.test.ts:213:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\merge.test.ts:226:1
+✖ skipped row produces no op (0.6955ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildMergePreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.ts:198:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/merge.test.ts:228:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\preview.test.ts:70:1
+✖ previews a valid hero as a new row (5.3884ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildImportPreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:134:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.test.ts:71:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+test at app\lib\import\preview.test.ts:87:1
+✖ classifies a row with an existing slug as a candidate (0.6092ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildImportPreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:134:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.test.ts:88:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\preview.test.ts:101:1
+✖ flags a duplicate slug inside the file on the later row (0.5242ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildImportPreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:134:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.test.ts:102:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\preview.test.ts:118:1
+✖ reports invalid enum, range and boolean values with column names (0.5747ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildImportPreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:134:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.test.ts:119:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\preview.test.ts:178:1
+✖ ignores blank rows and keeps spreadsheet row numbers (0.5699ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateHeroInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:129:16)
+      at collectHeroPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:337:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:230:11)
+      at buildImportPreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:134:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.test.ts:180:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\preview.test.ts:198:1
+✖ previews a valid skin and resolves the hero slug (1.4964ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at collectSkinPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:394:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:231:11)
+      at buildImportPreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:134:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.test.ts:199:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\preview.test.ts:212:1
+✖ accepts case-insensitive enums, booleans and hero slugs (1.0222ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at collectSkinPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:394:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:231:11)
+      at buildImportPreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:134:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.test.ts:213:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\preview.test.ts:232:1
+✖ allows a skin without a hero association (0.5694ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at collectSkinPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:394:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:231:11)
+      at buildImportPreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:134:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.test.ts:233:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\preview.test.ts:243:1
+✖ flags invalid skin references and values (1.9284ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at collectSkinPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:394:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:231:11)
+      at buildImportPreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:134:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.test.ts:244:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+
+test at app\lib\import\preview.test.ts:267:1
+✖ classifies an existing skin slug (0.7681ms)
+  ReferenceError: requiredTrimmedString is not defined
+      at validateSkinInput (file:///D:/Mlbb/My-Mlbb/app/lib/content/validation.ts:215:16)
+      at collectSkinPayload (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:394:18)
+      at parseImportRecords (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:231:11)
+      at buildImportPreview (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.ts:134:18)
+      at TestContext.<anonymous> (file:///D:/Mlbb/My-Mlbb/app/lib/import/preview.test.ts:268:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)

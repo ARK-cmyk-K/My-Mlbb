@@ -1,12 +1,13 @@
 import type {
   AchievementCategory,
+  AppearanceSettingsInput,
   HeroRole,
   PublicationState,
   SkinRarity,
   SkinVariant,
+  ThemePreset,
   TimelineKind,
 } from "./validation.ts";
-
 /**
  * Public service contracts for the draft/published content service (task 02-03).
  *
@@ -170,13 +171,51 @@ export interface PublishedRelease {
   timelineEntries: PublishedTimelineEntry[];
 }
 
+/** Draft appearance settings (singleton). */
+export interface DraftAppearanceSettings {
+  id: number;
+  themePreset: ThemePreset;
+  primaryAccent: string;
+  secondaryAccent: string;
+  typographyScale: number;
+  containerWidthPx: number;
+  spacingScale: number;
+  customCss: string | null;
+  publicationState: DraftState;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Draft homepage-section ordering/visibility (`04-02`). Configuration rows:
+ * `sectionId` is the primary key, `position` is globally unique, and there is
+ * no `archived_at` (see `DRAFT_TRANSITIONS`).
+ */
+export interface DraftHomepageSection {
+  sectionId: string;
+  position: number;
+  isEnabled: boolean;
+  publicationState: DraftState;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * A homepage section as published with a release. The public layout renders
+ * from this — never from {@link DraftHomepageSection}.
+ */
+export interface PublishedHomepageSection {
+  sectionId: string;
+  position: number;
+  isEnabled: boolean;
+}
+
 /** Convenience labels for a draft row's lifecycle state. */
 export const DRAFT_STATE_LABELS: Record<DraftState, string> = {
   draft: "Draft",
   published: "Published",
   archived: "Archived",
 };
-
 /**
  * A publication transition the service controls. These are transitions of a
  * draft row's *lifecycle marker*, not the act of publishing a release (which is

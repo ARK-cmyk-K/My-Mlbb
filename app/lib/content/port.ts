@@ -1,18 +1,22 @@
 import type {
   ActiveRelease,
   DraftAchievement,
+  DraftAppearanceSettings,
   DraftHero,
+  DraftHomepageSection,
   DraftSkin,
   DraftState,
   DraftTimelineEntry,
+  PublishedHomepageSection,
   PublishedRelease,
 } from "./contracts.ts";
 import type {
+  AppearanceSettingsInput,
   HeroInput,
+  HomepageSectionOrderInput,
   SkinInput,
   TimelineEntryInput,
 } from "./validation.ts";
-
 /**
  * The content-service port (task 02-03).
  *
@@ -73,6 +77,27 @@ export interface ContentService {
     options?: DraftListOptions
   ): Promise<DraftTimelineEntry[]>;
 
+  /** Reads the singleton draft appearance settings. */
+  getDraftAppearanceSettings(): Promise<DraftAppearanceSettings>;
+  /** Updates the singleton draft appearance settings. */
+  updateDraftAppearanceSettings(
+    input: Partial<AppearanceSettingsInput>
+  ): Promise<DraftAppearanceSettings>;
+
+  /**
+   * Lists the draft homepage-section ordering/visibility rows (task `04-02`),
+   * ordered by `position`. Configuration rows: no lifecycle filtering applies.
+   */
+  listDraftHomepageSections(): Promise<DraftHomepageSection[]>;
+  /**
+   * Replaces the draft homepage ordering with a complete, validated ordering
+   * (task `04-02`). `input` is the approved modules in display order; the
+   * service derives `position` from that order and rejects unapproved or
+   * duplicate section ids before touching the database.
+   */
+  updateDraftHomepageSections(
+    input: HomepageSectionOrderInput
+  ): Promise<DraftHomepageSection[]>;
   // ---- Draft mutations (admin only) ---------------------------------------
   /** Creates a draft hero from validated input. */
   createDraftHero(input: HeroInput): Promise<DraftHero>;
@@ -121,6 +146,17 @@ export interface ContentService {
    * `NO_PUBLISHED_RELEASE` when nothing has been published yet.
    */
   getPublishedRelease(): Promise<PublishedRelease>;
+  /**
+   * The published homepage ordering/visibility the public layout composes from
+   * (task `04-02`).
+   *
+   * Contract: published configuration only — the frozen payload of the active
+   * release (`04-05` freezes it, `04-06` publishes it). Draft rows are never
+   * read here, and "nothing published" is an empty array rather than a fallback
+   * to draft state, so the public page can render its unpublished state
+   * instead of guessing an order.
+   */
+  getPublishedHomepageSections(): Promise<PublishedHomepageSection[]>;
 }
 
 /** The service factory shape, so callers can accept an injected double. */

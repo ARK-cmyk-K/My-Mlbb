@@ -4,12 +4,15 @@ import type {
   PublicationState,
   SkinRarity,
   SkinVariant,
+  ThemePreset,
   TimelineKind,
 } from "./validation.ts";
 import type {
   ActiveRelease,
   DraftAchievement,
+  DraftAppearanceSettings,
   DraftHero,
+  DraftHomepageSection,
   DraftSkin,
   DraftTimelineEntry,
   PublishedAchievement,
@@ -17,7 +20,6 @@ import type {
   PublishedSkin,
   PublishedTimelineEntry,
 } from "./contracts.ts";
-
 /**
  * Row -> DTO mappers for the content service (task 02-03).
  *
@@ -206,6 +208,33 @@ export function toPublishedTimelineEntry(row: Row): PublishedTimelineEntry {
   };
 }
 
+export function toDraftAppearanceSettings(row: Row): DraftAppearanceSettings {
+  return {
+    id: typeof row.id === "number" ? row.id : Number(row.id ?? 1),
+    themePreset: (row.theme_preset ?? "adaptive") as ThemePreset,
+    primaryAccent: str(row.primary_accent),
+    secondaryAccent: str(row.secondary_accent),
+    typographyScale: num(row.typography_scale),
+    containerWidthPx: num(row.container_width_px),
+    spacingScale: num(row.spacing_scale),
+    customCss: nullableStr(row.custom_css),
+    publicationState: publicationState(row.publication_state),
+    createdAt: str(row.created_at),
+    updatedAt: str(row.updated_at),
+  };
+}
+
+export function toDraftHomepageSection(row: Row): DraftHomepageSection {
+  return {
+    sectionId: str(row.section_id),
+    position: num(row.position),
+    isEnabled: bool(row.is_enabled),
+    publicationState: publicationState(row.publication_state),
+    createdAt: str(row.created_at),
+    updatedAt: str(row.updated_at),
+  };
+}
+
 export function toActiveRelease(row: Row): ActiveRelease {
   return {
     id: str(row.id),
@@ -214,7 +243,6 @@ export function toActiveRelease(row: Row): ActiveRelease {
     updatedAt: str(row.updated_at),
   };
 }
-
 /** Column lists, kept beside the mappers so both stay in one file. */
 export const DRAFT_HERO_COLUMNS =
   "id, name, slug, primary_role, secondary_role, specialty, portrait_media_id, mastery_level, total_matches, win_rate, is_signature, is_favorite, publication_state, archived_at, created_at, updated_at" as const;
@@ -227,7 +255,10 @@ export const DRAFT_ACHIEVEMENT_COLUMNS =
 
 export const DRAFT_TIMELINE_COLUMNS =
   "id, title, body, kind, occurred_on, media_id, is_highlight, publication_state, archived_at, created_at, updated_at" as const;
-
+export const DRAFT_APPEARANCE_SETTINGS_COLUMNS =
+  "id, theme_preset, primary_accent, secondary_accent, typography_scale, container_width_px, spacing_scale, custom_css, publication_state, created_at, updated_at" as const;
+export const DRAFT_HOMEPAGE_SECTION_COLUMNS =
+  "section_id, position, is_enabled, publication_state, created_at, updated_at" as const;
 export const PUBLISHED_HERO_COLUMNS =
   "id, release_id, name, slug, primary_role, secondary_role, specialty, portrait_media_id, mastery_level, total_matches, win_rate, is_signature, is_favorite, published_at" as const;
 
