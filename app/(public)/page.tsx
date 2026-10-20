@@ -1,23 +1,6 @@
 import type { ReactNode } from "react";
 import { useTheme } from "./layout";
-import { getActiveRelease, getPublishedHomepageSections } from "../lib/content/service";
-import { PublishedHomepageSection } from "../lib/content/contracts";
-
-function NavLink({ href, children, active }: { href: string; children: ReactNode; active: boolean }) {
-  return (
-    <li>
-      <a
-        href={href}
-        className={`relative inline-flex rounded-md px-3 py-2 text-sm font-medium transition-colors ${active
-          ? "text-primary bg-primary/10"
-          : "text-muted-foreground hover:text-primary"} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
-        aria-current={active ? "page" : void 0}
-      >
-        {children}
-      </a>
-    </li>
-  );
-}
+import { contentService } from "@/app/lib/content";
 
 export default function Home() {
   const { toggleTheme, theme } = useTheme();
@@ -25,15 +8,15 @@ export default function Home() {
   // Fetch active release and homepage sections
   const [activeRelease, setActiveRelease] = React.useState<{
     release: any;
-    sections: PublishedHomepageSection[];
+    sections: any[];
   } | null>(null);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     async function load() {
       try {
-        const release = await getActiveRelease();
-        const sections = await getPublishedHomepageSections();
+        const release = await contentService.getActiveRelease();
+        const sections = await contentService.getPublishedHomepageSections();
         setActiveRelease({ release, sections });
       } catch (e) {
         console.error("Failed to load public data:", e);
@@ -101,7 +84,7 @@ export default function Home() {
               </h2>
               {activeRelease.sections.length > 0 ? (
                 <ul className="space-y-2">
-                  {activeRelease.sections.map((section: PublishedHomepageSection) => (
+                  {activeRelease.sections.map((section: any) => (
                     <li
                       key={section.sectionId}
                       className="flex items-center rounded-md px-3 py-2 bg-muted/50"

@@ -1,47 +1,21 @@
 import { useTheme } from "@/app/(public)/layout";
 import { useEffect, useState } from "react";
-import { getActiveRelease, getPublishedHomepageSections } from "../lib/content/service";
-import { PublishedHomepageSection } from "../lib/content/contracts";
+import { contentService } from "@/app/lib/content";
 
-function NavLink({
-  href,
-  children,
-  active,
-}: {
-  href: string;
-  children: React.ReactNode;
-  active: boolean;
-}) {
-  return (
-    <li>
-      <a
-        href={href}
-        className={`relative inline-flex rounded-md px-3 py-2 text-sm font-medium transition-colors ${active
-          ? "text-primary bg-primary/10"
-          : "text-muted-foreground hover:text-primary"} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
-        aria-current={active ? "page" : void 0}
-      >
-        {children}
-      </a>
-    </li>
-  );
-}
-
-/** Adaptive navigation for the public showcase site. */
 export function PublicNav() {
   const { toggleTheme } = useTheme();
   const [activeRelease, setActiveRelease] = useState<
-    | { release: any; sections: PublishedHomepageSection[] }
+    | { release: any; sections: any[] }
     | null
   >(null);
-  const [sections, setSections] = useState<PublishedHomepageSection[]>([]);
+  const [sections, setSections] = useState<any[]>([]);
 
   // Fetch data on mount
   useEffect(() => {
     async function load() {
       try {
-        const release = await getActiveRelease();
-        const fetchedSections = await getPublishedHomepageSections();
+        const release = await contentService.getActiveRelease();
+        const fetchedSections = await contentService.getPublishedHomepageSections();
         setActiveRelease(release);
         setSections(fetchedSections);
       } catch (e) {
@@ -85,48 +59,47 @@ export function PublicNav() {
       {/* Navigation links - adaptive based on released state */}
       <ul className="flex items-center gap-6 text-sm">
         <li>
-          <NavLink
+          <a
             href="/"
-            active={!activeRelease}
-            onClick={() => setActiveRelease(null)}
+            className="relative inline-flex rounded-md px-3 py-2 text-sm font-medium transition-colors text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             Home
-          </NavLink>
+          </a>
         </li>
 
         {/* Hero explorer - only shows if there's a published release */}
         {activeRelease && (
           <li>
-            <NavLink
+            <a
               href="/heroes"
-              active={false}
+              className="relative inline-flex rounded-md px-3 py-2 text-sm font-medium transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               Heroes
-            </NavLink>
+            </a>
           </li>
         )}
 
         {/* Skin explorer - only shows if there's a published release */}
         {activeRelease && (
           <li>
-            <NavLink
+            <a
               href="/skins"
-              active={false}
+              className="relative inline-flex rounded-md px-3 py-2 text-sm font-medium transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               Skins
-            </NavLink>
+            </a>
           </li>
         )}
 
         {/* Homepage sections - only shows if sections exist */}
         {sections.length > 0 && (
           <li>
-            <NavLink
+            <a
               href="/"
-              active={false}
+              className="relative inline-flex rounded-md px-3 py-2 text-sm font-medium transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               Sections
-            </NavLink>
+            </a>
           </li>
         )}
 
