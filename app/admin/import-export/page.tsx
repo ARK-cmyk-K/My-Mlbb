@@ -3,11 +3,12 @@ import { CsvImportForm } from "./csv-import-form";
 import { JsonBackupExportForm } from "./json-backup-export-form";
 
 /**
- * Import and export (task 03-05).
+ * Import and export (tasks 03-03 through 03-06).
  *
  * CSV import includes the full merge workflow (03-04). JSON backup export with
- * media manifest and checksums (03-05) is now available; SQL export remains
- * planned for 03-06.
+ * media manifest and checksums (03-05) is available. SQL export and restore
+ * are documented as admin/operator procedures with safeguards (03-06) rather
+ * than in-browser destructive operations.
  */
 export default async function ImportExportPage() {
   await requireAdmin();
@@ -29,13 +30,35 @@ export default async function ImportExportPage() {
 
       <JsonBackupExportForm />
 
-      <div className="mt-8 rounded-lg border border-dashed border-border bg-surface-raised p-5">
-        <h2 className="text-sm font-semibold text-foreground">Not built yet</h2>
-        <ul className="mt-3 space-y-2 text-sm text-muted">
+      <div className="mt-8 space-y-4 rounded-lg border border-border bg-surface-raised p-5">
+        <div>
+          <h2 className="text-sm font-semibold text-foreground">
+            SQL export and restore (safeguarded)
+          </h2>
+          <p className="mt-1 text-sm text-muted">
+            Database-level SQL dumps/restores cannot be performed safely from the
+            browser. The app provides a logical JSON backup (above); full
+            schema/data backups require privileged CLI access.
+          </p>
+        </div>
+        <ul className="space-y-2 text-sm text-muted">
           <li>
-            <span className="font-medium text-foreground">03-06:</span> SQL
-            export and restore safeguards that never run destructively by
-            default.
+            <span className="font-medium text-foreground">Safe export paths:</span>{" "}
+            Supabase CLI (<code className="rounded bg-background px-1 py-0.5">supabase db dump</code>),
+            <code className="rounded bg-background px-1 py-0.5">pg_dump</code>, or
+            provider-managed backups/PITR.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Restore rules:</span>{" "}
+            separately confirmed operation with format/version validation,
+            preview, explicit destructive-action warning, environment targeting
+            safeguards, and no arbitrary SQL execution from the browser.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Documentation:</span>{" "}
+            see <code className="rounded bg-background px-1 py-0.5">docs/sql-backup-restore.md</code>{" "}
+            for procedures, limits (PITR/provider settings/permissions), and
+            verification steps.
           </li>
         </ul>
       </div>

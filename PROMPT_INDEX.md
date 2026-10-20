@@ -22,7 +22,7 @@ Use one prompt per task. IDs are stable and should be referenced in `PROJECT_STA
 - [ ] `03-03` CSV dry-run import and validation (implemented, unverified — no live Supabase provider)
 - [ ] `03-04` Import merge-resolution workflow
 - [x] `03-05` JSON backup export and media manifest
-- [ ] `03-06` SQL export and restore safeguards
+- [x] `03-06` SQL export and restore safeguards
 
 ## Phase 4 — Appearance studio and release workspace
 - [ ] `04-01` Tokenized appearance settings
