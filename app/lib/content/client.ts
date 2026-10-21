@@ -2,7 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { createSupabaseServerClient } from "../supabase/server.ts";
+import { createSupabaseAnonClient, createSupabaseServerClient } from "../supabase/server.ts";
 import { readSupabaseConfig } from "../supabase/config.ts";
 import { ContentServiceError } from "./errors.ts";
 
@@ -91,6 +91,25 @@ export async function requireSupabaseClient(): Promise<SupabaseClient> {
     throw new ContentServiceError("NOT_CONFIGURED");
   }
   const client = await createSupabaseServerClient();
+  if (!client) {
+    throw new ContentServiceError("NOT_CONFIGURED");
+  }
+  return client;
+}
+
+/**
+ * Verifies Supabase is configured and returns a *cookie-free*, anon-key client
+ * for cacheable public reads (task 05-03).
+ *
+ * Unlike {@link requireSupabaseClient}, this performs no `cookies()` read, so it
+ * is safe to call inside `"use cache"` (Next.js rejects request APIs there). Use
+ * it only for data that is public and session-independent — the published
+ * release snapshot — never for admin or per-user paths.
+ *
+ * Throws `NOT_CONFIGURED` when Supabase is unavailable.
+ */
+export function requireSupabaseAnonClient(): SupabaseClient {
+  const client = createSupabaseAnonClient();
   if (!client) {
     throw new ContentServiceError("NOT_CONFIGURED");
   }

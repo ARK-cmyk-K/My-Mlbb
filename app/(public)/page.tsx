@@ -1,42 +1,68 @@
+import { Suspense } from "react";
+import Link from "next/link";
+
 import { MilestoneTimeline } from "@/app/components/milestone-timeline";
 import { ShowcaseTabs } from "@/app/components/showcase-tabs";
 import { SpotlightHeader } from "@/app/components/spotlight";
 import { StatsStrip } from "@/app/components/stats-strip";
-import { contentService } from "@/app/lib/content";
-import type { PublishedRelease } from "@/app/lib/content";
 import { buildShowcaseModel } from "@/app/lib/showcase/showcase-model";
 
+import { loadPublishedRelease, readAccountStats } from "./showcase-data";
+
 /**
- * Account stats live in the release snapshot payload (04-05/04-06), which is not
- * part of the `PublishedRelease` DTO yet. The fields are read defensively: a
- * missing snapshot or a missing field simply omits that value instead of
- * inventing one.
+ * Public homepage (tasks 05-01/05-02/05-03).
+ *
+ * Cache Components layout: the heading and copy are the static shell, and the
+ * published data is read inside `<Suspense>`. The read is cached
+ * (`getPublishedRelease()` uses `"use cache"`), but a cached function still
+ * awaits, so it must sit behind a boundary instead of blocking the shell. The
+ * `fallback` therefore shows only while the cached read resolves — on an
+ * already-warm cache it is never seen.
+ *
+ * "Only published entries may be rendered" is enforced at the data boundary:
+ * every section below derives from `getPublishedRelease()`, which reads the
+ * `published_*` tables exclusively. Draft rows never reach this page.
  */
-interface PublishedAccountStats {
-  display_name?: string;
-  total_matches?: number;
-  win_rate?: number | null;
-  rank_label?: string;
-  highest_rank_label?: string;
-  avatar_media_id?: string | number;
-  spotlight_media_id?: string | number;
+export default function PublicHome() {
+  return (
+    <main className="min-h-screen bg-background px-6 py-16 text-center">
+      <div className="mx-auto max-w-4xl">
+        <h1 className="font-display text-4xl font-semibold tracking-tight text-foreground">
+          MLBB Showcase
+        </h1>
+        <p className="mt-4 text-lg leading-8 text-muted">
+          A curated look at the collection — signature heroes, top-tier skins,
+          and the milestones behind them.
+        </p>
+        <Link
+          href="/collection"
+          className="mt-6 inline-flex items-center gap-2 rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        >
+          Explore the full collection
+          <span aria-hidden="true">→</span>
+        </Link>
+      </div>
+
+      <Suspense fallback={<ShowcaseFallback />}>
+        <PublishedShowcase />
+      </Suspense>
+    </main>
+  );
 }
 
-type PublishedHomeRelease = PublishedRelease & {
-  release_snapshots?: Array<{ account_stats?: PublishedAccountStats }>;
-};
+/**
+ * Resolves the published release and renders every data-driven section.
+ *
+ * Kept as its own component so the await happens *below* the page's Suspense
+ * boundary, which is what lets the heading/copy above prerender. A `null`
+ * release means "nothing published yet" — a normal state for a fresh
+ * deployment — and each section renders its own empty state.
+ */
+async function PublishedShowcase() {
+  const published = await loadPublishedRelease();
+  const showcase = buildShowcaseModel(published);
 
-export default async function PublicHome() {
-  let published: PublishedHomeRelease | null = null;
-
-  try {
-    published = (await contentService.getPublishedRelease()) as PublishedHomeRelease;
-  } catch {
-    // No published release yet — the page falls back to the shell below.
-    published = null;
-  }
-
-  const accountStats = published?.release_snapshots?.[0]?.account_stats;
+  const accountStats = readAccountStats(published);
   const featuredHero = published?.heroes?.[0] ?? null;
 
   const spotlightHero = featuredHero
@@ -73,49 +99,49 @@ export default async function PublicHome() {
       }
     : undefined;
 
-  // Derived from the published release only; drafts never reach this page.
-  const showcase = buildShowcaseModel(published);
+  // Published hero id → name, used to label the skin tab's hero association.
   const heroNames = Object.fromEntries(
     (published?.heroes ?? []).map((entry) => [entry.id, entry.name])
   );
 
   return (
-    <main className="min-h-screen bg-background px-6 py-16 text-center">
+    <>
       <div className="mx-auto max-w-4xl">
-        <h1 className="font-display text-4xl font-semibold tracking-tight text-foreground">
-          MLBB Showcase
-        </h1>
-        <p className="mt-4 text-lg leading-8 text-muted">
-          A curated look at the collection — signature heroes, top-tier skins,
-          and the milestones behind them.
-        </p>
-
-        {/* Spotlight header — cinematic header featuring the signature hero and account */}
+        {/* Spotlight header — cinematic header featuring the signature hero. */}
         <SpotlightHeader
-          hero={spotlightHero ?? undefined}
+          hero={spotlightHero}
           stats={spotlightStats}
           className="mt-8"
         />
 
-        {/* Stats strip — account stats and collection completeness */}
+        {/* Stats strip — account stats and collection completeness. */}
         <StatsStrip stats={stripStats} className="mt-8" />
       </div>
 
-      {/* Showcase tabs and milestone timeline — only published entries render */}
-      {published ? (
-        <div className="mx-auto mt-16 max-w-6xl text-left">
-          <ShowcaseTabs
-            heroes={showcase.signatureHeroes}
-            skins={showcase.topRaritySkins}
-            achievements={showcase.recentAchievements}
-            heroNames={heroNames}
-          />
-          <MilestoneTimeline
-            entries={showcase.timelineEntries}
-            className="mt-14"
-          />
-        </div>
-      ) : null}
-    </main>
+      {/* Showcase tabs and milestone timeline — only published entries render. */}
+      <div className="mx-auto mt-16 max-w-6xl text-left">
+        <ShowcaseTabs
+          heroes={showcase.signatureHeroes}
+          skins={showcase.topRaritySkins}
+          achievements={showcase.recentAchievements}
+          heroNames={heroNames}
+        />
+        <MilestoneTimeline entries={showcase.timelineEntries} className="mt-14" />
+      </div>
+    </>
+  );
+}
+
+/** Reserved space while the published release resolves, to avoid layout shift. */
+function ShowcaseFallback() {
+  return (
+    <div
+      className="mx-auto mt-16 max-w-6xl"
+      aria-hidden="true"
+      aria-busy="true"
+    >
+      <div className="h-6 w-40 animate-pulse rounded bg-surface-raised" />
+      <div className="mt-6 h-64 animate-pulse rounded-xl bg-surface-raised/60" />
+    </div>
   );
 }

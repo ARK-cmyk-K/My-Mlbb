@@ -1,10 +1,13 @@
 import "server-only";
 
+import { cacheLife, cacheTag } from "next/cache";
+
 import { isAdminUser } from "../db.ts";
 import type { ReleaseSnapshot } from "./contracts.ts";
 
 import {
   asPostgrestClient,
+  requireSupabaseAnonClient,
   requireSupabaseClient,
   type PostgrestLike,
   type QueryResult,
@@ -84,6 +87,29 @@ import { APPROVED_HOMEPAGE_SECTION_IDS } from "./homepage-sections.ts";
  * Every method returns DTOs (`./contracts.ts`) and rejects with a typed
  * `ContentServiceError`; no raw PostgREST error object escapes.
  */
+
+/**
+ * Cache tag for the active public release (cache components, `04-06`/`05-03`).
+ *
+ * The public showcase caches the published snapshot so it can be prerendered
+ * into the static shell. Publishing/rolling back a release must call
+ * `revalidateTag(PUBLISHED_RELEASE_CACHE_TAG)` in the same request so the site
+ * serves the new release immediately instead of waiting for `revalidate`.
+ */
+export const PUBLISHED_RELEASE_CACHE_TAG = "published-release";
+
+/**
+ * Cache profile for the public release snapshot.
+ *
+ * Chosen deliberately: `stale` is 5 minutes so the cached result is included in
+ * the route's App Shell, which is what makes the showcase part of the instant
+ * navigation/prefetch story rather than a dynamic hole.
+ */
+const PUBLISHED_RELEASE_CACHE_LIFE = {
+  stale: 300,
+  revalidate: 300,
+  expire: 3600,
+} as const;
 
 /** Physical table behind each lifecycle-aware draft resource. */
 const LIFECYCLE_TABLE_BY_RESOURCE: Record<DraftResource, string> = {
@@ -352,47 +378,21 @@ export function createSupabaseContentService(): ContentService {
     },
 
     async getPublishedRelease(): Promise<PublishedRelease> {
-      const db = await publicDb();
-      const releaseResult = await db
-        .from("published_release")
-        .select(ACTIVE_RELEASE_COLUMNS)
-        .maybeSingle();
-      throwIfError(releaseResult.error);
-      if (!releaseResult.data) {
+      // Cached so the public showcase can be prerendered into the static shell.
+      // Invalidation is explicit: publishing (04-06) revalidates the tag, so the
+      // lifetime below is a safety net, not the update mechanism.
+      const release = await getCachedPublishedRelease();
+      if (release === null) {
+        // Preserves the port contract: "nothing published" rejects here, while
+        // the cached read itself reports it as `null` so the public page (and
+        // the build-time prerender) can render an empty state instead of
+        // failing. See `getCachedPublishedRelease` for why the two differ.
         throw new ContentServiceError("NO_PUBLISHED_RELEASE");
       }
-      const releaseId = String(asRow(releaseResult.data).id);
-
-      const [heroes, skins, achievements, timeline] = await Promise.all([
-        queryPublished(db, "published_heroes", PUBLISHED_HERO_COLUMNS, releaseId),
-        queryPublished(db, "published_skins", PUBLISHED_SKIN_COLUMNS, releaseId),
-        queryPublished(
-          db,
-          "published_achievements",
-          PUBLISHED_ACHIEVEMENT_COLUMNS,
-          releaseId
-        ),
-        queryPublished(
-          db,
-          "published_timeline_entries",
-          PUBLISHED_TIMELINE_COLUMNS,
-          releaseId
-        ),
-      ]);
-
-      return {
-        release: toActiveRelease(asRow(releaseResult.data)),
-        heroes: heroes.map((row) => toPublishedHero(row)),
-        skins: skins.map((row) => toPublishedSkin(row)),
-        achievements: achievements.map(
-          (row): PublishedAchievement => toPublishedAchievement(row)
-        ),
-        timelineEntries: timeline.map((row) => toPublishedTimelineEntry(row)),
-      };
+      return release;
     },
 
     async getPublishedHomepageSections() {
-      const db = await publicDb();
       // Until 04-05/04-06 freeze the full snapshot into the published release
       // payload, the public configuration is not exposed by the current schema.
       // Returning [] here means the public layout must handle an unpublished
@@ -917,6 +917,99 @@ async function requireAdminDb(): Promise<PostgrestLike & { auth: AuthLike }> {
 async function publicDb(): Promise<PostgrestLike & { auth: AuthLike }> {
   const client = await requireSupabaseClient();
   return asPostgrestClient(client) as PostgrestLike & { auth: AuthLike };
+}
+
+/**
+ * A cookie-free, anon-key handle for **cacheable** public reads (task 05-03).
+ *
+ * `publicDb()` reads request cookies, which `"use cache"` forbids. Published
+ * data is public and session-independent, so this handle omits the session
+ * entirely and is what the cached release snapshot reads through.
+ */
+function cacheablePublicDb(): PostgrestLike & { auth: AuthLike } {
+  return asPostgrestClient(requireSupabaseAnonClient()) as PostgrestLike & {
+    auth: AuthLike;
+  };
+}
+
+/**
+ * Reads the active published release through the cached path.
+ *
+ * Split out of `getPublishedRelease` because `"use cache"` must be the first
+ * statement of a function body, and the port method itself is part of an object
+ * literal. The function is server-only by module boundary and returns plain DTOs
+ * (serializable, as `use cache` requires). It reads no runtime APIs, so it is
+ * eligible for the static shell.
+ *
+ * Returns `null` instead of throwing when there is nothing to show, for two
+ * distinct cases:
+ *
+ *   - **Nothing published yet** — a normal state for a fresh deployment.
+ *   - **The store cannot answer** (`STORE_UNAVAILABLE`, e.g. the schema/view is
+ *     not migrated in this environment).
+ *
+ * Both must render the public page's empty state rather than fail the build:
+ * a `"use cache"` body that *throws* during the build-time prerender aborts the
+ * whole build, and the call-site `try/catch` cannot contain it. Reporting `null`
+ * keeps the failure here where the public path can degrade gracefully.
+ *
+ * The port contract (`getPublishedRelease` rejects with `NO_PUBLISHED_RELEASE`)
+ * is preserved by the caller, which converts `null` back into that error.
+ */
+async function getCachedPublishedRelease(): Promise<PublishedRelease | null> {
+  "use cache";
+  cacheTag(PUBLISHED_RELEASE_CACHE_TAG);
+  cacheLife(PUBLISHED_RELEASE_CACHE_LIFE);
+
+  try {
+    // Cookie-free client: `cookies()` cannot be read inside `"use cache"`, and
+    // the published snapshot is the same for every visitor anyway.
+    const db = cacheablePublicDb();
+    const releaseResult = await db
+      .from("published_release")
+      .select(ACTIVE_RELEASE_COLUMNS)
+      .maybeSingle();
+    throwIfError(releaseResult.error);
+    if (!releaseResult.data) {
+      return null;
+    }
+    const releaseId = String(asRow(releaseResult.data).id);
+
+    const [heroes, skins, achievements, timeline] = await Promise.all([
+      queryPublished(db, "published_heroes", PUBLISHED_HERO_COLUMNS, releaseId),
+      queryPublished(db, "published_skins", PUBLISHED_SKIN_COLUMNS, releaseId),
+      queryPublished(
+        db,
+        "published_achievements",
+        PUBLISHED_ACHIEVEMENT_COLUMNS,
+        releaseId
+      ),
+      queryPublished(
+        db,
+        "published_timeline_entries",
+        PUBLISHED_TIMELINE_COLUMNS,
+        releaseId
+      ),
+    ]);
+
+    return {
+      release: toActiveRelease(asRow(releaseResult.data)),
+      heroes: heroes.map((row) => toPublishedHero(row)),
+      skins: skins.map((row) => toPublishedSkin(row)),
+      achievements: achievements.map(
+        (row): PublishedAchievement => toPublishedAchievement(row)
+      ),
+      timelineEntries: timeline.map((row) => toPublishedTimelineEntry(row)),
+    };
+  } catch (error) {
+    if (error instanceof ContentServiceError) {
+      // Store outages and a not-yet-migrated schema both mean "nothing to show".
+      // The failure is not swallowed silently: it is surfaced as the page's
+      // empty state, and the next revalidation retries the read.
+      return null;
+    }
+    throw error;
+  }
 }
 
 /** Applies the shared draft list filter (`state` or "everything but archived"). */

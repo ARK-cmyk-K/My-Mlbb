@@ -1,6 +1,7 @@
 import { cache } from "react";
 
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
@@ -57,3 +58,41 @@ export const createSupabaseServerClient = cache(
   });
   },
 );
+
+/**
+ * Cookie-free Supabase client for *cacheable* public reads (task 05-03).
+ *
+ * Why this exists: `createSupabaseServerClient()` reads `cookies()`, which makes
+ * any caller a request-time dependency. The public showcase read is wrapped in
+ * `"use cache"` (see `app/lib/content/service.ts`) so it can be prerendered into
+ * the static shell — and Next.js rejects reading `cookies()` inside a cached
+ * function. This client is deliberately built with an empty cookie jar instead:
+ *
+ *   - It uses only the public `anon` key, exactly like the request-scoped client.
+ *   - Public reads touch only the `published_*` tables and the
+ *     `published_release` view, which RLS already exposes to `anon`.
+ *   - The published snapshot is session-independent by design (every visitor
+ *     sees the same release), so omitting the session cannot change the result —
+ *     it is what makes the read safe to cache and share between visitors.
+ *
+ * Authorization for admin-only paths still goes through
+ * `createSupabaseServerClient()`; this factory must never be used for them.
+ *
+ * Returns `null` when Supabase is not configured, so callers fail closed.
+ */
+export function createSupabaseAnonClient(): SupabaseClient | null {
+  const config = readSupabaseConfig(process.env);
+  if (!config) {
+    return null;
+  }
+
+  return createClient(config.url, config.anonKey, {
+    auth: {
+      // No session persistence and no token refresh: this client is stateless
+      // and never authenticated, so there is nothing to keep alive.
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
+}

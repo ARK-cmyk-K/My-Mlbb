@@ -8,12 +8,12 @@ import type {
   PublishedHero,
   PublishedSkin,
 } from "@/app/lib/content/contracts";
+import { MediaFrame } from "@/app/components/media-frame";
 import { rarityToken } from "@/app/lib/showcase/rarity-tokens";
 import {
   formatCount,
   formatDate,
   formatEnumLabel,
-  initialsFromName,
   resolveTabKeyIndex,
   SHOWCASE_TABS,
   type ShowcaseTabId,
@@ -368,46 +368,6 @@ function AchievementCard({
         <p className="text-sm text-muted">{achievement.description}</p>
       ) : null}
     </article>
-  );
-}
-
-function MediaFrame({
-  mediaId,
-  alt,
-  name,
-  className,
-}: {
-  mediaId: string | null;
-  alt: string;
-  name: string;
-  className: string;
-}) {
-  const [failed, setFailed] = useState(false);
-  const showImage = Boolean(mediaId) && !failed;
-
-  return (
-    <div className={`relative w-full overflow-hidden bg-surface ${className}`}>
-      {showImage ? (
-        // eslint-disable-next-line @next/next/no-img-element -- published media is resolved from the release at runtime, so there is no statically analysable asset to hand to next/image
-        <img
-          src={`/showcase-public/${mediaId}.png`}
-          alt={alt}
-          loading="lazy"
-          decoding="async"
-          onError={() => setFailed(true)}
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-surface-raised via-surface to-background">
-          <span
-            aria-hidden="true"
-            className="font-display text-3xl font-semibold text-muted/70"
-          >
-            {initialsFromName(name)}
-          </span>
-        </div>
-      )}
-    </div>
   );
 }
 
