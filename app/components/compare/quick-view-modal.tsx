@@ -3,6 +3,8 @@
 import { useId } from "react";
 
 import { MediaFrame } from "@/app/components/media-frame";
+import { FavoriteToggle } from "@/app/components/favorites/favorite-toggle";
+import { ShareActions } from "@/app/components/share/share-actions";
 import { DetailRowList, EntryBadges, EntryIdentity } from "./detail-views";
 import { ModalShell } from "./modal-shell";
 import {
@@ -89,6 +91,38 @@ export function QuickViewModal({
             )}
           </section>
         ))}
+
+        <section
+          aria-labelledby={`${idPrefix}-actions`}
+          className="mt-6 border-t border-border pt-4"
+        >
+          <h3
+            id={`${idPrefix}-actions`}
+            className="font-display text-sm font-semibold uppercase tracking-wider text-foreground"
+          >
+            Keep or share
+          </h3>
+          <div className="mt-3 flex flex-wrap items-start gap-3">
+            <FavoriteToggle
+              showLabel
+              target={{
+                kind: model.entry.kind,
+                id: model.entry.id,
+                name: model.entry.name,
+                slug: model.entry.slug,
+              }}
+            />
+            <ShareActions
+              target={{
+                kind: model.entry.kind,
+                id: model.entry.id,
+                name: model.entry.name,
+                slug: model.entry.slug,
+              }}
+              context={model.entry.context}
+            />
+          </div>
+        </section>
       </div>
     </ModalShell>
   );

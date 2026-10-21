@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { ReactNode } from "react";
+import type { ReactNode, RefObject } from "react";
 
 /**
  * Accessible modal shell for the quick view and the comparison modal
@@ -46,6 +46,14 @@ export interface ModalShellProps {
   children: ReactNode;
   /** Extra classes for the panel (e.g. to widen it). */
   panelClassName?: string;
+  /**
+   * Element that should receive focus when the modal opens.
+   *
+   * Defaults to the panel itself, which makes assistive technology announce
+   * the dialog's name. A dialog whose first job is to accept input (the
+   * global search) points this at its input instead.
+   */
+  initialFocusRef?: RefObject<HTMLElement | null>;
 }
 
 export function ModalShell({
@@ -53,6 +61,7 @@ export function ModalShell({
   onClose,
   children,
   panelClassName = "",
+  initialFocusRef,
 }: ModalShellProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -71,11 +80,16 @@ export function ModalShell({
         : null;
 
     const panel = panelRef.current;
-    // The panel itself is focused (not the first control) so assistive
-    // technology announces the dialog's name as it opens. Tab then moves into
-    // the content, because the trap below pulls focus back in whenever it
-    // would otherwise leave the panel.
-    panel?.focus();
+    // Focus the requested element, or the panel itself so assistive technology
+    // announces the dialog's name as it opens. Tab then moves into the
+    // content, because the trap below pulls focus back in whenever it would
+    // otherwise leave the panel.
+    const initial = initialFocusRef?.current ?? null;
+    if (initial) {
+      initial.focus();
+    } else {
+      panel?.focus();
+    }
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -127,7 +141,7 @@ export function ModalShell({
       document.body.style.overflow = previousOverflow;
       previousFocusRef.current?.focus();
     };
-  }, []);
+  }, [initialFocusRef]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto sm:items-center sm:p-6">

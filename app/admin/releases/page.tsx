@@ -47,10 +47,14 @@ export default async function ReleasesPage() {
           className="space-y-4 max-w-2xl"
         >
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label
+              htmlFor="release-label"
+              className="block text-sm font-medium mb-2"
+            >
               Release label
             </label>
             <input
+              id="release-label"
               type="text"
               name="releaseLabel"
               placeholder="e.g. Version 1.0"
@@ -100,10 +104,14 @@ export default async function ReleasesPage() {
           }}
           className="space-y-4 max-w-2xl"
         >
-          <label className="block text-sm font-medium mb-2">
+          <label
+            htmlFor="rollback-snapshot"
+            className="block text-sm font-medium mb-2"
+          >
             Select snapshot to roll back to
           </label>
           <select
+            id="rollback-snapshot"
             name="targetSnapshotId"
             className="w-full border rounded p-2"
             required

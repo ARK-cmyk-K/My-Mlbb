@@ -15,6 +15,7 @@ import {
 import { ComparisonModal } from "@/app/components/compare/comparison-modal";
 import { CompareTray } from "@/app/components/compare/compare-tray";
 import { QuickViewModal } from "@/app/components/compare/quick-view-modal";
+import { FavoritesPanel } from "@/app/components/favorites/favorites-panel";
 import {
   resolveComparisonEntries,
   resolveEntry,
@@ -62,8 +63,11 @@ import { formatCount } from "@/app/lib/showcase/showcase-model";
  * entries are queued for comparison; the modals themselves are separate
  * components and all of their data comes from the published collection.
  *
- * Deliberately out of scope here: visitor favourites persisted in browser
- * storage and social sharing — both belong to task `05-06`.
+ * Task `05-06` adds the visitor's own **saved items** (stored in the browser,
+ * never on the server) and one-click sharing. The favourites panel is a
+ * separate client component that reads the browser's storage; this component
+ * only hands it the published collection to resolve the saved pointers
+ * against.
  */
 
 /** Delay before writing filter changes to the URL (also avoids history-API rate limits while typing). */
@@ -258,6 +262,7 @@ export function CollectionExplorer({
                               onQuickView: () => setQuickViewRef(ref),
                               onCompare: () => toggleCompare(ref),
                               compareSelected: isCompared(ref),
+                              favorite: true,
                             }}
                           />
                         </li>
@@ -278,6 +283,7 @@ export function CollectionExplorer({
                               onQuickView: () => setQuickViewRef(ref),
                               onCompare: () => toggleCompare(ref),
                               compareSelected: isCompared(ref),
+                              favorite: true,
                             }}
                           />
                         </li>
@@ -325,6 +331,8 @@ export function CollectionExplorer({
           onClose={() => setComparisonOpen(false)}
         />
       ) : null}
+
+      <FavoritesPanel collection={collection} />
     </section>
   );
 }

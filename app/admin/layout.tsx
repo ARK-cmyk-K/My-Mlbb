@@ -17,7 +17,7 @@ import { DashboardChrome } from "./dashboard-chrome";
 // Admin routes are private: keep them out of search indexes. This is not an
 // authorization control — `requireAdmin()` is.
 export const metadata: Metadata = {
-  title: "Dashboard · MLBB Showcase",
+  title: "Dashboard",
   robots: { index: false, follow: false },
 };
 

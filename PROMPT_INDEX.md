@@ -37,7 +37,7 @@ Use one prompt per task. IDs are stable and should be referenced in `PROJECT_STA
 - [ ] `05-02` Spotlight header and stats strip
 - [ ] `05-03` Showcase tabs and milestone timeline
 - [x] `05-04` Hero and skin explorer
-- [ ] `05-05` Quick view and dual-mode comparison
+- [x] `05-05` Quick view and dual-mode comparison (implemented, unverified — no live published release)
 - [ ] `05-06` Local favorites and social sharing
 
 ## Phase 6 — Search, social cards, optimization, launch

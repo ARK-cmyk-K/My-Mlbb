@@ -1,11 +1,48 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import { ExplorerNotice } from "@/app/components/explorer/explorer-cards";
 import { CollectionExplorer } from "@/app/components/explorer/collection-explorer";
 import { parseExplorerState } from "@/app/lib/explorer/explorer-model";
 
 import { loadExplorerCollection } from "./explorer-data";
+
+/**
+ * Metadata for the collection explorer (task `06-02`).
+ *
+ * **Canonical strategy.** The explorer is one page that shows the whole
+ * published collection; the query string (`view`, `q`, `role`, `rarity`, …)
+ * only narrows what is on screen. A filtered URL therefore points at the same
+ * content as `/collection` and canonicalises to `/collection` — the same
+ * treatment every storefront gives a filtered listing. Filtered URLs stay
+ * fully usable and shareable (that is what task `05-06` builds on); they
+ * simply do not claim canonical status.
+ *
+ * The preview image comes from the `opengraph-image.tsx` file convention in
+ * this segment and is generated from the published release only.
+ */
+export const metadata: Metadata = {
+  title: "Collection explorer",
+  description:
+    "Browse every published hero and skin in the collection: search and filter by role, rarity, series, ownership, and favorites.",
+  alternates: { canonical: "/collection" },
+  openGraph: {
+    type: "website",
+    url: "/collection",
+    title: "Collection explorer · MLBB Showcase",
+    description:
+      "Browse every published hero and skin in the collection: search and filter by role, rarity, series, ownership, and favorites.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Collection explorer · MLBB Showcase",
+    description:
+      "Browse every published hero and skin in the collection: search and filter by role, rarity, series, ownership, and favorites.",
+  },
+};
+
+type CollectionSearchParams = PageProps<"/collection">["searchParams"];
 
 /**
  * Public collection explorer (task 05-04).
@@ -26,15 +63,6 @@ import { loadExplorerCollection } from "./explorer-data";
  * projection through the content-service port; draft rows cannot reach this
  * route.
  */
-
-export const metadata = {
-  title: "Collection explorer — MLBB Showcase",
-  description:
-    "Browse every published hero and skin in the collection: search and filter by role, rarity, series, ownership, and favorites.",
-};
-
-type CollectionSearchParams = PageProps<"/collection">["searchParams"];
-
 export default function CollectionPage({
   searchParams,
 }: PageProps<"/collection">) {

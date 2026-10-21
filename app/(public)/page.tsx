@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import { MilestoneTimeline } from "@/app/components/milestone-timeline";
 import { ShowcaseTabs } from "@/app/components/showcase-tabs";
@@ -8,6 +9,35 @@ import { StatsStrip } from "@/app/components/stats-strip";
 import { buildShowcaseModel } from "@/app/lib/showcase/showcase-model";
 
 import { loadPublishedRelease, readAccountStats } from "./showcase-data";
+
+/**
+ * Metadata for the public homepage (task `06-02`).
+ *
+ * The canonical URL is the bare homepage: the homepage shows the same
+ * published release on every request, so there is nothing to qualify it with.
+ * The preview image comes from the `opengraph-image.tsx` file convention in
+ * this segment and is generated from the published release — never from a
+ * draft entry.
+ */
+export const metadata: Metadata = {
+  title: { absolute: "MLBB Showcase" },
+  description:
+    "A curated look at the collection — signature heroes, top-tier skins, and the milestones behind them.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: "/",
+    title: "MLBB Showcase",
+    description:
+      "A curated look at the collection — signature heroes, top-tier skins, and the milestones behind them.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MLBB Showcase",
+    description:
+      "A curated look at the collection — signature heroes, top-tier skins, and the milestones behind them.",
+  },
+};
 
 /**
  * Public homepage (tasks 05-01/05-02/05-03).

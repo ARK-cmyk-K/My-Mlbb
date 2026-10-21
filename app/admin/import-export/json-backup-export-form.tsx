@@ -104,19 +104,22 @@ export function JsonBackupExportForm() {
             </span>
           </label>
 
-          <label className="flex items-start gap-2 text-sm">
+          <label
+            htmlFor="export-include-public-urls"
+            className="flex items-start gap-2 text-sm"
+          >
             <input
+              id="export-include-public-urls"
               type="checkbox"
               name="includePublicUrls"
               className="mt-1 h-4 w-4 rounded border-border bg-background text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             />
-            <span>
-              <span className="font-medium text-foreground">
-                Include public storage URLs
-              </span>
-              <span className="mt-1 block text-xs text-muted">
-                Only for media in the public bucket (&quot;showcase-public&quot;). Draft
-                objects never receive public URLs. Not included by default.
+            <span className="font-medium text-foreground">
+              Include public storage URLs
+              <span className="mt-1 block text-xs font-normal text-muted">
+                Only for media in the public bucket (&quot;showcase-public&quot;).
+                Draft objects never receive public URLs. Not included by
+                default.
               </span>
             </span>
           </label>

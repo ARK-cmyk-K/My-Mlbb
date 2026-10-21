@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { NavLink } from "@/app/components/nav";
+import { GlobalSearch } from "@/app/components/search/global-search";
 
 /**
  * Site-wide header for the public routes (task 05-04).
@@ -13,6 +14,9 @@ import { NavLink } from "@/app/components/nav";
  * minimal: a wordmark back to the homepage plus the two public
  * destinations, with the active link derived from the pathname so the header
  * renders identically on the server and after client navigation.
+ *
+ * The global search (task `06-01`) lives in the header too, so Cmd/Ctrl+K
+ * works from every public page.
  */
 const PUBLIC_LINKS = [
   { href: "/", label: "Home", match: (path: string) => path === "/" },
@@ -49,6 +53,9 @@ export function PublicNav() {
             </NavLink>
           ))}
         </ul>
+        <div className="ml-auto">
+          <GlobalSearch />
+        </div>
       </nav>
     </header>
   );

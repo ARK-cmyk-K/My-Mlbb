@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 
 import type { PublishedHero, PublishedSkin } from "@/app/lib/content/contracts";
 import { MediaFrame } from "@/app/components/media-frame";
+import { FavoriteToggle } from "@/app/components/favorites/favorite-toggle";
+import type { FavoriteTarget } from "@/app/lib/favorites/favorites-model";
 import { rarityToken } from "@/app/lib/showcase/rarity-tokens";
 import {
   formatCount,
@@ -42,6 +44,13 @@ export interface ExplorerCardActions {
   onCompare?: () => void;
   /** True when this entry is already in the comparison tray. */
   compareSelected?: boolean;
+  /**
+   * Shows the visitor's "save this entry" toggle (task `05-06`).
+   *
+   * The toggle stores the choice in the visitor's own browser; the card only
+   * says which entry the button refers to.
+   */
+  favorite?: boolean;
 }
 
 /** Signature chip — identical treatment to the showcase tabs (`05-03`). */
@@ -130,7 +139,18 @@ export function ExplorerHeroCard({
           </div>
         </dl>
 
-        {actions ? <CardActions actions={actions} name={hero.name} /> : null}
+        {actions ? (
+          <CardActions
+            actions={actions}
+            name={hero.name}
+            favoriteTarget={{
+              kind: "hero",
+              id: hero.id,
+              name: hero.name,
+              slug: hero.slug,
+            }}
+          />
+        ) : null}
       </div>
     </article>
   );
@@ -203,7 +223,18 @@ export function ExplorerSkinCard({
           )}
         </p>
 
-        {actions ? <CardActions actions={actions} name={skin.name} /> : null}
+        {actions ? (
+          <CardActions
+            actions={actions}
+            name={skin.name}
+            favoriteTarget={{
+              kind: "skin",
+              id: skin.id,
+              name: skin.name,
+              slug: skin.slug,
+            }}
+          />
+        ) : null}
       </div>
     </article>
   );
@@ -213,23 +244,26 @@ export function ExplorerSkinCard({
  * The quick view / compare buttons at the foot of a card.
  *
  * The compare button is a toggle (`aria-pressed`), so its state is announced
- * rather than only implied by the label.
+ * rather than only implied by the label. The save button is a toggle too, and
+ * it keeps the visitor's choice in their own browser (task `05-06`).
  */
 function CardActions({
   actions,
   name,
+  favoriteTarget,
 }: {
   actions: ExplorerCardActions;
   name: string;
+  favoriteTarget: FavoriteTarget;
 }) {
-  if (!actions.onQuickView && !actions.onCompare) {
+  if (!actions.onQuickView && !actions.onCompare && !actions.favorite) {
     return null;
   }
 
   const selected = actions.compareSelected === true;
 
   return (
-    <div className="mt-3 flex flex-wrap gap-2 border-t border-border/60 pt-3">
+    <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
       {actions.onQuickView ? (
         <button
           type="button"
@@ -252,6 +286,9 @@ function CardActions({
           {selected ? "In comparison" : "Compare"}
           <span className="sr-only">{` — ${name}`}</span>
         </button>
+      ) : null}
+      {actions.favorite ? (
+        <FavoriteToggle target={favoriteTarget} />
       ) : null}
     </div>
   );

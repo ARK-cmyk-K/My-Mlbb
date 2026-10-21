@@ -110,6 +110,10 @@ export function ComparisonModal({
         </button>
       </header>
 
+      {/* eslint-disable-next-line jsx-a11y/interactive-supports-focus --
+          The WAI-ARIA tabs pattern puts focus on the tabs themselves (the
+          buttons below use a roving tabindex), never on the tablist
+          container, so the container is deliberately not focusable. */}
       <div
         role="tablist"
         aria-label="Comparison views"

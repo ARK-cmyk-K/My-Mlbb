@@ -112,6 +112,13 @@ export interface EntryDetails {
   kind: EntryKind;
   id: string;
   name: string;
+  /**
+   * Public slug of the entry.
+   *
+   * Used to build canonical public URLs (the share links of task `05-06`), so
+   * a link keeps working after the display name changes.
+   */
+  slug: string;
   /** Artwork: the portrait for a hero, the splash art for a skin. */
   mediaId: string | null;
   /** Alt text for the artwork. */
@@ -335,6 +342,7 @@ function heroDetails(hero: PublishedHero): EntryDetails {
     kind: "hero",
     id: hero.id,
     name: hero.name,
+    slug: hero.slug,
     mediaId: hero.portraitMediaId,
     mediaAlt: `Portrait of ${hero.name}`,
     context: heroRoleLine(hero),
@@ -373,6 +381,7 @@ function skinDetails(
     kind: "skin",
     id: skin.id,
     name: skin.name,
+    slug: skin.slug,
     mediaId: skin.splashArtMediaId,
     mediaAlt: `${skin.name} splash art`,
     context: hero === null ? null : hero.name,
