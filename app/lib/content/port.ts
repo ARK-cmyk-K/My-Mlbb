@@ -98,7 +98,7 @@ export interface ContentService {
    * duplicate section ids before touching the database.
    */
   updateDraftHomepageSections(
-    input: HomepageSectionOrderInput
+    input: HomepageSectionOrderInput[]
   ): Promise<DraftHomepageSection[]>;
   // ---- Draft mutations (admin only) ---------------------------------------
   /** Creates a draft hero from validated input. */
@@ -169,3 +169,5 @@ export interface ContentService {
 
 /** The service factory shape, so callers can accept an injected double. */
 export type ContentServiceFactory = () => Promise<ContentService>;
+
+export type { ActiveRelease };

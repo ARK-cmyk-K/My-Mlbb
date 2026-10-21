@@ -4,7 +4,7 @@ import type { FieldIssue, HomepageSectionOrderInput } from "./validation.ts";
 const ALLOWED_IDS = new Set<string>(APPROVED_HOMEPAGE_SECTION_IDS);
 
 export type HomepageSectionsFormParseResult =
-  | { ok: true; value: HomepageSectionOrderInput }
+  | { ok: true; value: HomepageSectionOrderInput[] }
   | { ok: false; issues: FieldIssue[] };
 
 function issue(path: string, message: string): FieldIssue {
@@ -82,8 +82,9 @@ export function parseHomepageSectionsForm(formData: FormData): HomepageSectionsF
 
   const value = sorted.map((entry) => ({
     sectionId: entry.sectionId,
+    position: entry.order,
     isEnabled: entry.isEnabled,
   }));
 
-  return { ok: true, value: value as unknown as HomepageSectionOrderInput };
+  return { ok: true, value };
 }

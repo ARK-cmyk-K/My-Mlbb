@@ -299,7 +299,7 @@ export function createSupabaseContentService(): ContentService {
         .select(DRAFT_HOMEPAGE_SECTION_COLUMNS);
       throwIfError(inserted.error);
       const list = rowsOf(inserted);
-      list.sort((a, b) => Number((a as any).position) - Number((b as any).position));
+      list.sort((a, b) => Number((a as Record<string, unknown>).position) - Number((b as Record<string, unknown>).position));
       return list.map((row) => toDraftHomepageSection(row));
     },
 
@@ -457,6 +457,7 @@ export function createSupabaseContentService(): ContentService {
       const timelineRows = rowsOf(draftTimelineEntries);
 
       // Build diff entries for each resource type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const self = this as any;
       const heroDiffs = self.computeHeroDiffs(heroRows, snapshot);
       const skinDiffs = self.computeSkinDiffs(skinRows, snapshot);
@@ -486,12 +487,13 @@ export function createSupabaseContentService(): ContentService {
       draftHeroes: Array<Record<string, unknown>>,
       snapshot: ReleaseSnapshot
     ): DiffEntry[] {
-      const snapshotHeroes = (snapshot.payload as any)?.heroes ?? [];
+      type SnapshotRow = Record<string, unknown> & { id: string };
+      const snapshotHeroes = (((snapshot.payload as Record<string, unknown>)?.heroes ?? []) as SnapshotRow[]);
       const result: DiffEntry[] = [];
 
       // Heroes in snapshot but not in draft (or vice versa) are "changed/removed/added"
       const draftIds = new Set(draftHeroes.map((h) => String(h.id)));
-      const snapshotIds = new Set(snapshotHeroes.map((s: any) => s.id));
+      const snapshotIds = new Set(snapshotHeroes.map((s) => s.id));
 
       // Check for removed heroes
       for (const id of snapshotIds as Set<string>) {
@@ -499,7 +501,7 @@ export function createSupabaseContentService(): ContentService {
           result.push({
             path: "heroes",
             kind: "removed",
-            old: snapshotHeroes.find((s: any) => s.id === id),
+            old: snapshotHeroes.find((s) => s.id === id),
           });
         }
       }
@@ -507,7 +509,7 @@ export function createSupabaseContentService(): ContentService {
       // Check for added or changed heroes
       for (const draftHero of draftHeroes) {
         const id = String(draftHero.id);
-        const snapshotHero = snapshotHeroes.find((s: any) => s.id === id);
+        const snapshotHero = snapshotHeroes.find((s) => s.id === id);
         if (!snapshotHero) {
           result.push({
             path: "heroes",
@@ -520,7 +522,7 @@ export function createSupabaseContentService(): ContentService {
         // Compare fields
         const changes: Array<{ field: string; old: unknown; new: unknown }> = [];
 
-        const fieldComparisons: [string, keyof any, keyof any][] = [
+        const fieldComparisons: [string, string, string][] = [
           ["name", "name", "name"],
           ["slug", "slug", "slug"],
           ["primaryRole", "primary_role", "primary_role"],
@@ -534,8 +536,8 @@ export function createSupabaseContentService(): ContentService {
         ];
 
         for (const [field, draftKey, snapshotKey] of fieldComparisons) {
-          const draftVal = (draftHero as any)[draftKey];
-          const snapshotVal = (snapshotHero as any)[snapshotKey];
+          const draftVal = (draftHero as Record<string, unknown>)[draftKey];
+          const snapshotVal = (snapshotHero as Record<string, unknown>)[snapshotKey];
           if (String(draftVal) !== String(snapshotVal)) {
             changes.push({ field, old: snapshotVal, new: draftVal });
           }
@@ -566,11 +568,12 @@ export function createSupabaseContentService(): ContentService {
       draftSkins: Array<Record<string, unknown>>,
       snapshot: ReleaseSnapshot
     ): DiffEntry[] {
-      const snapshotSkins = (snapshot.payload as any)?.skins ?? [];
+      type SnapshotRow = Record<string, unknown> & { id: string };
+      const snapshotSkins = (((snapshot.payload as Record<string, unknown>)?.skins ?? []) as SnapshotRow[]);
       const result: DiffEntry[] = [];
 
       const draftSkinIds = new Set(draftSkins.map((s) => String(s.id)));
-      const snapshotSkinIds = new Set(snapshotSkins.map((s: any) => s.id));
+      const snapshotSkinIds = new Set(snapshotSkins.map((s) => s.id));
 
       // Check for removed skins
       for (const id of snapshotSkinIds as Set<string>) {
@@ -578,7 +581,7 @@ export function createSupabaseContentService(): ContentService {
           result.push({
             path: "skins",
             kind: "removed",
-            old: snapshotSkins.find((s: any) => s.id === id),
+            old: snapshotSkins.find((s) => s.id === id),
           });
         }
       }
@@ -586,7 +589,7 @@ export function createSupabaseContentService(): ContentService {
       // Check for added or changed skins
       for (const draftSkin of draftSkins) {
         const id = String(draftSkin.id);
-        const snapshotSkin = snapshotSkins.find((s: any) => s.id === id);
+        const snapshotSkin = snapshotSkins.find((s) => s.id === id);
         if (!snapshotSkin) {
           result.push({
             path: "skins",
@@ -598,7 +601,7 @@ export function createSupabaseContentService(): ContentService {
 
         const changes: Array<{ field: string; old: unknown; new: unknown }> = [];
 
-        const fieldComparisons: [string, keyof any, keyof any][] = [
+        const fieldComparisons: [string, string, string][] = [
           ["name", "name", "name"],
           ["slug", "slug", "slug"],
           ["heroId", "hero_id", "hero_id"],
@@ -613,8 +616,8 @@ export function createSupabaseContentService(): ContentService {
         ];
 
         for (const [field, draftKey, snapshotKey] of fieldComparisons) {
-          const draftVal = (draftSkin as any)[draftKey];
-          const snapshotVal = (snapshotSkin as any)[snapshotKey];
+          const draftVal = (draftSkin as Record<string, unknown>)[draftKey];
+          const snapshotVal = (snapshotSkin as Record<string, unknown>)[snapshotKey];
           if (String(draftVal) !== String(snapshotVal)) {
             changes.push({ field, old: snapshotVal, new: draftVal });
           }
@@ -645,14 +648,15 @@ export function createSupabaseContentService(): ContentService {
       draftAchievements: Array<Record<string, unknown>>,
       snapshot: ReleaseSnapshot
     ): DiffEntry[] {
-      const snapshotAchievements = (snapshot.payload as any)?.achievements ?? [];
+      type SnapshotRow = Record<string, unknown> & { id: string };
+      const snapshotAchievements = (((snapshot.payload as Record<string, unknown>)?.achievements ?? []) as SnapshotRow[]);
       const result: DiffEntry[] = [];
 
       const draftAchIdSet = new Set(
         draftAchievements.map((a) => String(a.id))
       );
       const snapshotAchIdSet = new Set(
-        snapshotAchievements.map((a: any) => a.id)
+        snapshotAchievements.map((a) => a.id)
       );
 
       // Check for removed achievements
@@ -661,7 +665,7 @@ export function createSupabaseContentService(): ContentService {
           result.push({
             path: "achievements",
             kind: "removed",
-            old: snapshotAchievements.find((a: any) => a.id === id),
+            old: snapshotAchievements.find((a) => a.id === id),
           });
         }
       }
@@ -669,7 +673,7 @@ export function createSupabaseContentService(): ContentService {
       // Check for added or changed achievements
       for (const draftAch of draftAchievements) {
         const id = String(draftAch.id);
-        const snapshotAch = snapshotAchievements.find((a: any) => a.id === id);
+        const snapshotAch = snapshotAchievements.find((a) => a.id === id);
         if (!snapshotAch) {
           result.push({
             path: "achievements",
@@ -681,7 +685,7 @@ export function createSupabaseContentService(): ContentService {
 
         const changes: Array<{ field: string; old: unknown; new: unknown }> = [];
 
-        const fieldComparisons: [string, keyof any, keyof any][] = [
+        const fieldComparisons: [string, string, string][] = [
           ["title", "title", "title"],
           ["description", "description", "description"],
           ["category", "category", "category"],
@@ -689,8 +693,8 @@ export function createSupabaseContentService(): ContentService {
         ];
 
         for (const [field, draftKey, snapshotKey] of fieldComparisons) {
-          const draftVal = (draftAch as any)[draftKey];
-          const snapshotVal = (snapshotAch as any)[snapshotKey];
+          const draftVal = (draftAch as Record<string, unknown>)[draftKey];
+          const snapshotVal = (snapshotAch as Record<string, unknown>)[snapshotKey];
           if (String(draftVal) !== String(snapshotVal)) {
             changes.push({ field, old: snapshotVal, new: draftVal });
           }
@@ -721,14 +725,15 @@ export function createSupabaseContentService(): ContentService {
       draftTimelineEntries: Array<Record<string, unknown>>,
       snapshot: ReleaseSnapshot
     ): DiffEntry[] {
-      const snapshotTimeline = (snapshot.payload as any)?.timeline_entries ?? [];
+      type SnapshotRow = Record<string, unknown> & { id: string };
+      const snapshotTimeline = (((snapshot.payload as Record<string, unknown>)?.timeline_entries ?? []) as SnapshotRow[]);
       const result: DiffEntry[] = [];
 
       const draftTimIdSet = new Set(
         draftTimelineEntries.map((t) => String(t.id))
       );
       const snapshotTimIdSet = new Set(
-        snapshotTimeline.map((t: any) => t.id)
+        snapshotTimeline.map((t) => t.id)
       );
 
       // Check for removed timeline entries
@@ -737,7 +742,7 @@ export function createSupabaseContentService(): ContentService {
           result.push({
             path: "timeline_entries",
             kind: "removed",
-            old: snapshotTimeline.find((t: any) => t.id === id),
+            old: snapshotTimeline.find((t) => t.id === id),
           });
         }
       }
@@ -745,7 +750,7 @@ export function createSupabaseContentService(): ContentService {
       // Check for added or changed timeline entries
       for (const draftTim of draftTimelineEntries) {
         const id = String(draftTim.id);
-        const snapshotTim = snapshotTimeline.find((t: any) => t.id === id);
+        const snapshotTim = snapshotTimeline.find((t) => t.id === id);
         if (!snapshotTim) {
           result.push({
             path: "timeline_entries",
@@ -757,7 +762,7 @@ export function createSupabaseContentService(): ContentService {
 
         const changes: Array<{ field: string; old: unknown; new: unknown }> = [];
 
-        const fieldComparisons: [string, keyof any, keyof any][] = [
+        const fieldComparisons: [string, string, string][] = [
           ["title", "title", "title"],
           ["body", "body", "body"],
           ["kind", "kind", "kind"],
@@ -766,8 +771,8 @@ export function createSupabaseContentService(): ContentService {
         ];
 
         for (const [field, draftKey, snapshotKey] of fieldComparisons) {
-          const draftVal = (draftTim as any)[draftKey];
-          const snapshotVal = (snapshotTim as any)[snapshotKey];
+          const draftVal = (draftTim as Record<string, unknown>)[draftKey];
+          const snapshotVal = (snapshotTim as Record<string, unknown>)[snapshotKey];
           if (String(draftVal) !== String(snapshotVal)) {
             changes.push({ field, old: snapshotVal, new: draftVal });
           }
@@ -798,7 +803,7 @@ export function createSupabaseContentService(): ContentService {
       db: PostgrestLike,
       snapshot: ReleaseSnapshot
     ): Promise<DiffEntry[]> {
-      const snapshotPayload = snapshot.payload as any;
+      const snapshotPayload = snapshot.payload as Record<string, unknown>;
       const result: DiffEntry[] = [];
 
       // Fetch current draft appearance settings
@@ -841,7 +846,7 @@ export function createSupabaseContentService(): ContentService {
         // Compare fields
         const changes: Array<{ field: string; old: unknown; new: unknown }> = [];
 
-        const fieldComparisons: [string, keyof any, keyof any][] = [
+        const fieldComparisons: [string, string, string][] = [
           ["themePreset", "theme_preset", "theme_preset"],
           ["primaryAccent", "primary_accent", "primary_accent"],
           ["secondaryAccent", "secondary_accent", "secondary_accent"],
@@ -852,8 +857,8 @@ export function createSupabaseContentService(): ContentService {
         ];
 
         for (const [field, draftKey, snapshotKey] of fieldComparisons) {
-          const draftVal = (draftAppearance as any)[draftKey];
-          const snapshotVal = (snapshotAppearance as any)[snapshotKey];
+          const draftVal = (draftAppearance as Record<string, unknown>)[draftKey];
+          const snapshotVal = (snapshotAppearance as Record<string, unknown>)[snapshotKey];
           if (String(draftVal) !== String(snapshotVal)) {
             changes.push({ field, old: snapshotVal, new: draftVal });
           }

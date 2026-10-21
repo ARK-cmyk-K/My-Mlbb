@@ -100,10 +100,11 @@ export function snapshotSkinValues(skin: DraftSkin): Record<string, MergeValue> 
   return pick(skin, SKIN_MERGE_FIELDS);
 }
 
-function pick(source: any, fields: readonly string[]): Record<string, MergeValue> {
+function pick(source: object, fields: readonly string[]): Record<string, MergeValue> {
   const values: Record<string, MergeValue> = {};
+  const record = source as Record<string, unknown>;
   for (const field of fields) {
-    const value = source[field];
+    const value = record[field];
     values[field] = normalizeValue(value);
   }
   return values;
@@ -276,10 +277,10 @@ export function buildMergePreview(
   };
 }
 
-function payloadValues(entity: ImportEntity, payload: any): Record<string, MergeValue> {
+function payloadValues(entity: ImportEntity, payload: unknown): Record<string, MergeValue> {
   return entity === "heroes"
-    ? pick(payload as any, HERO_MERGE_FIELDS)
-    : pick(payload as any, SKIN_MERGE_FIELDS);
+    ? pick(payload as Record<string, unknown>, HERO_MERGE_FIELDS)
+    : pick(payload as Record<string, unknown>, SKIN_MERGE_FIELDS);
 }
 
 export { buildImportPreview };
@@ -313,7 +314,7 @@ export function validateMergeResolutions(
   }
 
   const byRow = new Map<number, MergeRowResolution>();
-  input.forEach((entry: any, index: number) => {
+  input.forEach((entry: Record<string, unknown>, index: number) => {
     if (entry === null || typeof entry !== "object") {
       issues.push({
         path: `resolutions[${index}]`,
@@ -502,7 +503,7 @@ export function buildMergePlan(
     }
     const merged = applyChoices(
       snapshot.values,
-      payloadValues(payload.entity, row.payload ?? ({} as any)),
+      payloadValues(payload.entity, row.payload ?? ({} as Record<string, unknown>)),
       resolved
     );
 
@@ -547,16 +548,24 @@ function applyChoices(
 
 import { validateHeroInput as validateHeroInputFn, validateSkinInput as validateSkinInputFn } from "../content/validation.ts";
 
-function validatePayload(entity: any, payload: unknown): any {
+function validatePayload(
+  entity: ImportEntity,
+  payload: unknown
+): ValidationResult<HeroInput | SkinInput> {
   return entity === "heroes" ? validateHeroInputFn(payload) : validateSkinInputFn(payload);
 }
 
-function payloadValuesEqual(entity: any, payload: any, values: any): boolean {
+function payloadValuesEqual(entity: ImportEntity, payload: unknown, values: unknown): boolean {
   const current = payloadValues(entity, payload);
-  return mergeFieldsFor(entity).every((field: any) => valuesMatch(current[field] ?? null, values[field] ?? null));
+  return mergeFieldsFor(entity).every((field: string) =>
+    valuesMatch(
+      current[field] ?? null,
+      ((values as Record<string, unknown>)[field] ?? null) as MergeValue
+    )
+  );
 }
 
-function pushRowIssues(target: any[], row: number, source: readonly any[]): void {
+function pushRowIssues(target: Array<{ path: string; message: string }>, row: number, source: readonly { path: string; message: string }[]): void {
   for (const issue of source) {
     target.push({ path: `rows.${row}.${issue.path}`, message: issue.message });
   }
@@ -566,11 +575,24 @@ function pushRowIssues(target: any[], row: number, source: readonly any[]): void
 // Staleness
 // ---------------------------------------------------------------------------
 
-export function detectStaleness(previewed: any, fresh: any): Array<{ row: number; message: string }> {
-  const issues: any[] = [];
-  const freshByRow = new Map((fresh as any[]).map((r: any) => [r.row, r]));
-  for (const before of previewed as any[]) {
-    const after: any = freshByRow.get(before.row);
+interface StalenessRow {
+  row: number;
+  action: string;
+  snapshot?: {
+    id: string;
+    updatedAt?: string;
+    values: Record<string, unknown>;
+  } | null;
+}
+
+export function detectStaleness(
+  previewed: readonly StalenessRow[],
+  fresh: readonly StalenessRow[]
+): Array<{ row: number; message: string }> {
+  const issues: Array<{ row: number; message: string }> = [];
+  const freshByRow = new Map(fresh.map((r) => [r.row, r]));
+  for (const before of previewed) {
+    const after = freshByRow.get(before.row);
     if (after === undefined) {
       issues.push({ row: before.row, message: "is no longer valid or no longer present in the collection" });
       continue;
@@ -593,7 +615,7 @@ export function detectStaleness(previewed: any, fresh: any): Array<{ row: number
       continue;
     }
     for (const [field, value] of Object.entries(before.snapshot.values)) {
-      const latest = (after.snapshot.values as any)[field] ?? null;
+      const latest = after.snapshot.values[field] ?? null;
       if (value !== latest) {
         issues.push({ row: before.row, message: "changed the value of \"" + field + "\" after the preview was generated" });
         break;

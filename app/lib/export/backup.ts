@@ -131,6 +131,7 @@ async function fetchAll(
     let from = 0;
     while (true) {
       const to = from + chunkSize - 1;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const query: any = db.from(table).select(columns).order("created_at", { ascending: true, nullsFirst: true });
       if (typeof query.range === "function") {
         const result = await query.range(from, to);
@@ -286,7 +287,13 @@ export async function createBackupExport(
     publicationState?: string;
   }>>();
 
-  function addRef(mediaId: string | null | undefined, entity: any, field: string, id: string | null, state?: string) {
+  function addRef(
+    mediaId: unknown,
+    entity: BackupMediaManifestItem["referencedBy"][number]["entity"],
+    field: string,
+    id: string | null,
+    state?: string
+  ) {
     if (!mediaId) return;
     const key = String(mediaId);
     if (!mediaMap.has(key)) mediaMap.set(key, []);
@@ -294,41 +301,41 @@ export async function createBackupExport(
   }
 
   for (const h of heroes) {
-    addRef((h as any).portrait_media_id, "heroes", "portrait_media_id", str((h as any).id), str((h as any).publication_state));
+    addRef((h as Record<string, unknown>).portrait_media_id, "heroes", "portrait_media_id", str((h as Record<string, unknown>).id), str((h as Record<string, unknown>).publication_state));
   }
   for (const s of skins) {
-    addRef((s as any).splash_art_media_id, "skins", "splash_art_media_id", str((s as any).id), str((s as any).publication_state));
+    addRef((s as Record<string, unknown>).splash_art_media_id, "skins", "splash_art_media_id", str((s as Record<string, unknown>).id), str((s as Record<string, unknown>).publication_state));
   }
   for (const a of achievements) {
-    addRef((a as any).icon_media_id, "achievements", "icon_media_id", str((a as any).id), str((a as any).publication_state));
+    addRef((a as Record<string, unknown>).icon_media_id, "achievements", "icon_media_id", str((a as Record<string, unknown>).id), str((a as Record<string, unknown>).publication_state));
   }
   for (const t of timelineEntries) {
-    addRef((t as any).media_id, "timeline_entries", "media_id", str((t as any).id), str((t as any).publication_state));
+    addRef((t as Record<string, unknown>).media_id, "timeline_entries", "media_id", str((t as Record<string, unknown>).id), str((t as Record<string, unknown>).publication_state));
   }
   for (const asRow of accountStats) {
-    addRef((asRow as any).avatar_media_id, "account_stats", "avatar_media_id", null, str((asRow as any).publication_state));
-    addRef((asRow as any).spotlight_media_id, "account_stats", "spotlight_media_id", null, str((asRow as any).publication_state));
-    addRef((asRow as any).rank_media_id, "account_stats", "rank_media_id", null, str((asRow as any).publication_state));
+    addRef((asRow as Record<string, unknown>).avatar_media_id, "account_stats", "avatar_media_id", null, str((asRow as Record<string, unknown>).publication_state));
+    addRef((asRow as Record<string, unknown>).spotlight_media_id, "account_stats", "spotlight_media_id", null, str((asRow as Record<string, unknown>).publication_state));
+    addRef((asRow as Record<string, unknown>).rank_media_id, "account_stats", "rank_media_id", null, str((asRow as Record<string, unknown>).publication_state));
   }
 
   const mediaManifest: BackupMediaManifestItem[] = mediaRows.map((m) => {
-    const id = str((m as any).id);
-    const bucket = str((m as any).storage_bucket);
-    const objectPath = str((m as any).object_path);
+    const id = str((m as Record<string, unknown>).id);
+    const bucket = str((m as Record<string, unknown>).storage_bucket);
+    const objectPath = str((m as Record<string, unknown>).object_path);
     return {
       id,
       storageBucket: bucket,
       objectPath,
-      kind: str((m as any).kind),
-      mimeType: str((m as any).mime_type),
-      byteSize: num((m as any).byte_size),
-      widthPx: nullableNum((m as any).width_px),
-      heightPx: nullableNum((m as any).height_px),
-      checksumSha256: nullableStr((m as any).checksum_sha256),
-      altText: nullableStr((m as any).alt_text),
-      publicationState: str((m as any).publication_state),
-      createdAt: nullableStr((m as any).created_at),
-      updatedAt: nullableStr((m as any).updated_at),
+      kind: str((m as Record<string, unknown>).kind),
+      mimeType: str((m as Record<string, unknown>).mime_type),
+      byteSize: num((m as Record<string, unknown>).byte_size),
+      widthPx: nullableNum((m as Record<string, unknown>).width_px),
+      heightPx: nullableNum((m as Record<string, unknown>).height_px),
+      checksumSha256: nullableStr((m as Record<string, unknown>).checksum_sha256),
+      altText: nullableStr((m as Record<string, unknown>).alt_text),
+      publicationState: str((m as Record<string, unknown>).publication_state),
+      createdAt: nullableStr((m as Record<string, unknown>).created_at),
+      updatedAt: nullableStr((m as Record<string, unknown>).updated_at),
       publicUrl: buildPublicUrl(includePublicUrls, bucket, objectPath),
       referencedBy: mediaMap.get(id) ?? [],
     };

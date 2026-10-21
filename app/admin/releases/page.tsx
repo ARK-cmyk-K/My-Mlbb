@@ -33,7 +33,7 @@ export default async function ReleasesPage() {
       <div className="mb-8">
         <h2 className="text-xl font-medium mb-4">Publish New Release</h2>
         <form
-          onSubmit={async (e: any) => {
+          onSubmit={async (e: React.FormEvent<HTMLFormElement>) => {
             e.preventDefault();
             const formData = new FormData(e.target as HTMLFormElement);
             const state = await (await import("../../actions/release-actions"))
@@ -81,7 +81,7 @@ export default async function ReleasesPage() {
         )}
 
         <form
-          onSubmit={async (e: any) => {
+          onSubmit={async (e: React.FormEvent<HTMLFormElement>) => {
             e.preventDefault();
             const formData = new FormData(e.target as HTMLFormElement);
             const snapshotId = String(formData.get("targetSnapshotId") ?? "").trim();

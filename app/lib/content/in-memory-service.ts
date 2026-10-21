@@ -7,7 +7,9 @@ import type {
   DraftState,
   DiffEntry,
   DraftTimelineEntry,
+  DraftHomepageSection,
   PublishedRelease,
+  PublishedHomepageSection,
   ReleaseDiff,
   ReleaseSnapshot,
 } from "./contracts.ts";
@@ -65,8 +67,9 @@ export interface SeedData {
   achievements?: Array<Partial<DraftAchievement>>;
   timelineEntries?: Array<Partial<DraftTimelineEntry>>;
   publishedRelease?: PublishedRelease | null;
-  homepageSections?: Array<Partial<any>>;
-  publishedHomepageSections?: Array<Partial<any>>;
+  appearanceSettings?: Partial<DraftAppearanceSettings>;
+  homepageSections?: Array<Partial<DraftHomepageSection>>;
+  publishedHomepageSections?: Array<Partial<PublishedHomepageSection>>;
   releaseSnapshots?: Array<Partial<ReleaseSnapshot>>;
 }
 
@@ -199,21 +202,17 @@ export function createInMemoryContentService(
     seedTimelineEntry
   );
   const releaseSnapshots = (options.seed?.releaseSnapshots ?? []).map(
-    (seed: Partial<ReleaseSnapshot>) => seed
+    (seed: Partial<ReleaseSnapshot> & Record<string, unknown>) => seed as ReleaseSnapshot & Record<string, unknown>
   );
   let appearanceSettings = seedAppearanceSettings(
-    options.seed as Partial<SeedData> & {
-      appearanceSettings?: Partial<DraftAppearanceSettings>;
-    }["appearanceSettings"]
-      ? (options.seed as any).appearanceSettings
-      : undefined
+    (options.seed as SeedData | undefined)?.appearanceSettings
   );
-  let draftHomepageSections: any[] = (options.seed?.homepageSections ?? defaultHomepageSectionConfiguration()).map(
-    (seed: any) => ({
-      sectionId: seed.sectionId,
-      position: seed.position,
+  let draftHomepageSections = (options.seed?.homepageSections ?? defaultHomepageSectionConfiguration()).map(
+    (seed: Partial<DraftHomepageSection>) => ({
+      sectionId: seed.sectionId ?? "",
+      position: seed.position ?? 0,
       isEnabled: seed.isEnabled ?? true,
-      publicationState: (seed.publicationState as any) ?? "draft",
+      publicationState: (seed.publicationState as DraftState) ?? "draft",
       createdAt: seed.createdAt ?? nowIso(),
       updatedAt: seed.updatedAt ?? nowIso(),
     })
@@ -485,13 +484,13 @@ export function createInMemoryContentService(
 
     async listDraftHomepageSections() {
       requireAdmin();
-      return draftHomepageSections.map((row: any) => ({ ...row }));
+      return draftHomepageSections.map((row) => ({ ...row }));
     },
 
-    async updateDraftHomepageSections(input: any) {
+    async updateDraftHomepageSections(input: HomepageSectionOrderInput[]) {
       requireAdmin();
       const validated = requireValidation(validateHomepageSectionOrder(input));
-      draftHomepageSections = (validated as any[]).map((entry: any) => ({
+      draftHomepageSections = (validated as HomepageSectionOrderInput[]).map((entry) => ({
         sectionId: entry.sectionId,
         position: entry.position,
         isEnabled: entry.isEnabled,
@@ -499,7 +498,7 @@ export function createInMemoryContentService(
         createdAt: nowIso(),
         updatedAt: nowIso(),
       }));
-      return draftHomepageSections.map((row: any) => ({ ...row }));
+      return draftHomepageSections.map((row) => ({ ...row }));
     },
 
     async transitionDraftState(
@@ -557,43 +556,35 @@ export function createInMemoryContentService(
 
     async getPublishedHomepageSections() {
       requirePublicConfigured();
-      const sections = (publishedRelease as any)?.homepageSections ?? [];
+      const sections = (options.seed as SeedData | undefined)?.publishedHomepageSections ?? [];
       return sections
-        .filter(
-          (entry: any) =>
-            entry &&
-            entry.isEnabled &&
-            typeof entry.sectionId === "string"
+        .filter((entry): entry is DraftHomepageSection =>
+          !!entry && !!entry.isEnabled && typeof entry.sectionId === "string"
         )
-        .map((entry: any) => ({ ...entry }));
+        .map((entry) => ({ ...entry }));
     },
 
     async getReleaseSnapshot(releaseId: string): Promise<ReleaseSnapshot> {
       requireAdmin();
       const snapshots = releaseSnapshots;
       const snap = snapshots.find(
-        (s: any) => (s.releaseId ?? s.release_id) === releaseId
+        (s) => (s.releaseId ?? s.release_id) === releaseId
       );
       if (!snap) {
         throw new ContentServiceError("NO_PUBLISHED_RELEASE", {
           message: `No release snapshot found for release "${releaseId}".`,
         });
       }
+      // snap is Partial<ReleaseSnapshot> from seed; construct full ReleaseSnapshot
       return {
         id: String(snap.id),
-        releaseId: String((snap as any).releaseId ?? (snap as any).release_id),
+        releaseId: String(snap.releaseId ?? snap.release_id),
         version: Number(snap.version),
         label: snap.label ?? null,
-        payload: snap.payload,
-        payloadFormatVersion: Number(
-          (snap as any).payloadFormatVersion ?? (snap as any).payload_format_version ?? 1
-        ),
-        checksumSha256: String(
-          (snap as any).checksumSha256 ?? (snap as any).checksum_sha256
-        ),
-        createdAt: String(
-          (snap as any).createdAt ?? (snap as any).created_at ?? nowIso()
-        ),
+        payload: snap.payload ?? {},
+        payloadFormatVersion: Number(snap.payloadFormatVersion ?? snap.payload_format_version ?? 1),
+        checksumSha256: String(snap.checksumSha256 ?? snap.checksum_sha256),
+        createdAt: String(snap.createdAt ?? snap.created_at ?? nowIso()),
       };
     },
 
@@ -617,12 +608,21 @@ export function createInMemoryContentService(
 
       const draftAppearanceSettings = appearanceSettings;
 
-      // Diff: compare snapshot heroes vs draft heroes by ID
-      const snapshotHeroes = (snapshot.payload as any)?.heroes ?? [];
+      interface SnapshotPayload {
+  heroes: Array<Record<string, unknown> & { id: string }>;
+  skins: Array<Record<string, unknown> & { id: string }>;
+  achievements: Array<Record<string, unknown> & { id: string }>;
+  timeline_entries: Array<Record<string, unknown> & { id: string }>;
+  appearance_settings: Record<string, unknown> | null;
+}
+
+const payload = snapshot.payload as SnapshotPayload;
+const snapshotHeroes = payload.heroes ?? [];
+      type SnapshotRow = Record<string, unknown> & { id: string };
       const diffs: DiffEntry[] = [];
 
       const draftHeroIds = new Set(draftHeroes.map((h) => String(h.id)));
-      const snapshotHeroIds = new Set(snapshotHeroes.map((s: any) => s.id));
+      const snapshotHeroIds = new Set(snapshotHeroes.map((s) => s.id));
 
       // Heroes in snapshot but not in draft
       for (const id of snapshotHeroIds as Set<string>) {
@@ -630,7 +630,7 @@ export function createInMemoryContentService(
           diffs.push({
             path: "heroes",
             kind: "removed",
-            old: snapshotHeroes.find((s: any) => s.id === id),
+            old: snapshotHeroes.find((s) => s.id === id),
           });
         }
       }
@@ -638,7 +638,7 @@ export function createInMemoryContentService(
       // Heroes in draft: added or changed/unchanged
       for (const hero of draftHeroes) {
         const id = String(hero.id);
-        const snapshotHero = snapshotHeroes.find((s: any) => s.id === id);
+        const snapshotHero = snapshotHeroes.find((s) => s.id === id);
         if (!snapshotHero) {
           diffs.push({ path: "heroes", kind: "added", new: hero });
           continue;
@@ -656,22 +656,22 @@ export function createInMemoryContentService(
       }
 
       // Skins diff
-      const snapshotSkins = (snapshot.payload as any)?.skins ?? [];
+      const snapshotSkins = payload.skins ?? [];
       const skinDiffs: DiffEntry[] = [];
       const draftSkinIds = new Set(draftSkins.map((s) => String(s.id)));
-      const snapshotSkinIds = new Set(snapshotSkins.map((s: any) => s.id));
+      const snapshotSkinIds = new Set(snapshotSkins.map((s) => s.id));
       for (const id of snapshotSkinIds as Set<string>) {
         if (!draftSkinIds.has(id)) {
           skinDiffs.push({
             path: "skins",
             kind: "removed",
-            old: snapshotSkins.find((s: any) => s.id === id),
+            old: snapshotSkins.find((s) => s.id === id),
           });
         }
       }
       for (const skin of draftSkins) {
         const id = String(skin.id);
-        const snapshotSkin = snapshotSkins.find((s: any) => s.id === id);
+        const snapshotSkin = snapshotSkins.find((s) => s.id === id);
         if (!snapshotSkin) {
           skinDiffs.push({ path: "skins", kind: "added", new: skin });
           continue;
@@ -689,22 +689,22 @@ export function createInMemoryContentService(
       }
 
       // Achievements diff
-      const snapshotAchievements = (snapshot.payload as any)?.achievements ?? [];
+      const snapshotAchievements = payload.achievements ?? [];
       const achievementDiffs: DiffEntry[] = [];
       const draftAchIds = new Set(draftAchievements.map((a) => String(a.id)));
-      const snapshotAchIds = new Set(snapshotAchievements.map((a: any) => a.id));
+      const snapshotAchIds = new Set(snapshotAchievements.map((a) => a.id));
       for (const id of snapshotAchIds as Set<string>) {
         if (!draftAchIds.has(id)) {
           achievementDiffs.push({
             path: "achievements",
             kind: "removed",
-            old: snapshotAchievements.find((a: any) => a.id === id),
+            old: snapshotAchievements.find((a) => a.id === id),
           });
         }
       }
       for (const ach of draftAchievements) {
         const id = String(ach.id);
-        const snapshotAch = snapshotAchievements.find((a: any) => a.id === id);
+        const snapshotAch = snapshotAchievements.find((a) => a.id === id);
         if (!snapshotAch) {
           achievementDiffs.push({
             path: "achievements",
@@ -726,22 +726,22 @@ export function createInMemoryContentService(
       }
 
       // Timeline diff
-      const snapshotTimeline = (snapshot.payload as any)?.timeline_entries ?? [];
+      const snapshotTimeline = payload.timeline_entries ?? [];
       const timelineDiffs: DiffEntry[] = [];
       const draftTimIds = new Set(draftTimelineEntries.map((t) => String(t.id)));
-      const snapshotTimIds = new Set(snapshotTimeline.map((t: any) => t.id));
+      const snapshotTimIds = new Set(snapshotTimeline.map((t) => t.id));
       for (const id of snapshotTimIds as Set<string>) {
         if (!draftTimIds.has(id)) {
           timelineDiffs.push({
             path: "timeline_entries",
             kind: "removed",
-            old: snapshotTimeline.find((t: any) => t.id === id),
+            old: snapshotTimeline.find((t) => t.id === id),
           });
         }
       }
       for (const tim of draftTimelineEntries) {
         const id = String(tim.id);
-        const snapshotTim = snapshotTimeline.find((t: any) => t.id === id);
+        const snapshotTim = snapshotTimeline.find((t) => t.id === id);
         if (!snapshotTim) {
           timelineDiffs.push({
             path: "timeline_entries",
@@ -763,7 +763,7 @@ export function createInMemoryContentService(
       }
 
       // Appearance diff
-      const snapshotAppearance = (snapshot.payload as any)?.appearance_settings ?? null;
+      const snapshotAppearance = payload.appearance_settings ?? null;
       const appearanceDiffs: DiffEntry[] = [];
       if (!draftAppearanceSettings && !snapshotAppearance) {
         appearanceDiffs.push({ path: "appearance_settings", kind: "unchanged" });

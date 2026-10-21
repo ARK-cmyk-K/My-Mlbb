@@ -1,153 +1,121 @@
-import type { ReactNode } from "react";
-import { useTheme } from "./layout";
+import { MilestoneTimeline } from "@/app/components/milestone-timeline";
+import { ShowcaseTabs } from "@/app/components/showcase-tabs";
+import { SpotlightHeader } from "@/app/components/spotlight";
+import { StatsStrip } from "@/app/components/stats-strip";
 import { contentService } from "@/app/lib/content";
+import type { PublishedRelease } from "@/app/lib/content";
+import { buildShowcaseModel } from "@/app/lib/showcase/showcase-model";
 
-export default function Home() {
-  const { toggleTheme, theme } = useTheme();
+/**
+ * Account stats live in the release snapshot payload (04-05/04-06), which is not
+ * part of the `PublishedRelease` DTO yet. The fields are read defensively: a
+ * missing snapshot or a missing field simply omits that value instead of
+ * inventing one.
+ */
+interface PublishedAccountStats {
+  display_name?: string;
+  total_matches?: number;
+  win_rate?: number | null;
+  rank_label?: string;
+  highest_rank_label?: string;
+  avatar_media_id?: string | number;
+  spotlight_media_id?: string | number;
+}
 
-  // Fetch active release and homepage sections
-  const [activeRelease, setActiveRelease] = React.useState<{
-    release: any;
-    sections: any[];
-  } | null>(null);
-  const [loading, setLoading] = React.useState(true);
+type PublishedHomeRelease = PublishedRelease & {
+  release_snapshots?: Array<{ account_stats?: PublishedAccountStats }>;
+};
 
-  React.useEffect(() => {
-    async function load() {
-      try {
-        const release = await contentService.getActiveRelease();
-        const sections = await contentService.getPublishedHomepageSections();
-        setActiveRelease({ release, sections });
-      } catch (e) {
-        console.error("Failed to load public data:", e);
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
-  }, []);
+export default async function PublicHome() {
+  let published: PublishedHomeRelease | null = null;
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-6 py-24 text-center">
-        <div className="animate-spin rounded-full border-4 border-border border-b-transparent w-8 h-8"></div>
-        <p className="ml-4 text-lg leading-relaxed">Loading showcase…</p>
-      </div>
-    );
+  try {
+    published = (await contentService.getPublishedRelease()) as PublishedHomeRelease;
+  } catch {
+    // No published release yet — the page falls back to the shell below.
+    published = null;
   }
 
+  const accountStats = published?.release_snapshots?.[0]?.account_stats;
+  const featuredHero = published?.heroes?.[0] ?? null;
+
+  const spotlightHero = featuredHero
+    ? {
+        id: featuredHero.id,
+        name: featuredHero.name,
+        slug: featuredHero.slug,
+        portraitMediaId: featuredHero.portraitMediaId,
+        totalMatches: featuredHero.totalMatches,
+        winRate: featuredHero.winRate,
+        rankLabel: accountStats?.rank_label ?? null,
+        highestRankLabel: accountStats?.highest_rank_label ?? null,
+      }
+    : undefined;
+
+  const spotlightStats = accountStats
+    ? {
+        totalMatches: accountStats.total_matches,
+        winRate: accountStats.win_rate ?? null,
+        rankLabel: accountStats.rank_label,
+        highestRankLabel: accountStats.highest_rank_label,
+        spotlightMediaId: accountStats.spotlight_media_id?.toString(),
+      }
+    : undefined;
+
+  const stripStats = accountStats
+    ? {
+        displayName: accountStats.display_name,
+        totalMatches: accountStats.total_matches,
+        winRate: accountStats.win_rate ?? null,
+        rankLabel: accountStats.rank_label,
+        highestRankLabel: accountStats.highest_rank_label,
+        avatarMediaId: accountStats.avatar_media_id?.toString(),
+      }
+    : undefined;
+
+  // Derived from the published release only; drafts never reach this page.
+  const showcase = buildShowcaseModel(published);
+  const heroNames = Object.fromEntries(
+    (published?.heroes ?? []).map((entry) => [entry.id, entry.name])
+  );
+
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
-      {/* Theme toggle in header */}
-      <header className="border-b border-border bg-background/80 backdrop-blur-sm shadow-sm">
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
-          <h1 className="font-display text-2xl font-semibold tracking-tight">
-            MLBB Showcase
-          </h1>
-          <button
-            onClick={toggleTheme}
-            className="rounded-md bg-accent-soft px-3 py-1.5 text-sm font-medium text-accent-text hover:bg-accent hover:text-accent-contrast transition-colors"
-            aria-label="Toggle theme"
-          >
-            {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
-          </button>
-        </div>
-      </header>
-
-      <main className="flex-1 px-6 py-8">
-        {activeRelease ? (
-          <div className="prose lg:prose-2xl max-w-7xl mx-auto">
-            {/* Hero explorer section */}
-            <section className="mb-12">
-              <h2 className="font-display text-xl font-semibold tracking-tight mb-4">
-                Featured Heroes
-              </h2>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {activeRelease.release.heroes.map((hero: any) => (
-                  <article
-                    key={hero.id}
-                    className="group rounded-lg border border-border p-4 hover:border-primary transition-colors"
-                  >
-                    <h3 className="font-medium text-primary line-clamp-2">{hero.name}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {hero.primaryRole?.name || "No role assigned"}
-                    </p>
-                  </article>
-                ))}
-              </div>
-            </section>
-
-            {/* Homepage sections */}
-            <section className="mb-12">
-              <h2 className="font-display text-xl font-semibold tracking-tight mb-4">
-                {activeRelease.sections.length > 0 ? "Homepage Sections" : "No Homepage Sections"}
-              </h2>
-              {activeRelease.sections.length > 0 ? (
-                <ul className="space-y-2">
-                  {activeRelease.sections.map((section: any) => (
-                    <li
-                      key={section.sectionId}
-                      className="flex items-center rounded-md px-3 py-2 bg-muted/50"
-                    >
-                      <span className="w-2 rounded-full bg-accent mr-3" />
-                      <span>{section.sectionId}: {section.isEnabled ? "Enabled" : "Disabled"}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-muted-foreground">
-                  No homepage sections configured yet. The public site will render
-                  its default layout.
-                </p>
-              )}
-            </section>
-
-            {/* Stats strip */}
-            <section className="mt-12 pt-8 border-t border-border">
-              <h2 className="font-display text-xl font-semibold tracking-tight mb-4">
-                Account Stats
-              </h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-muted-foreground">Total Heroes</p>
-                  <p className="font-display text-3xl font-bold">
-                    {activeRelease.release.heroes.length}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Published Skins</p>
-                  <p className="font-display text-3xl font-bold">
-                    {activeRelease.release.skins.length}
-                  </p>
-                </div>
-              </div>
-            </section>
-          </div>
-        ) : (
-          <div className="min-h-screen flex items-center justify-center bg-background px-6 py-24 text-center">
-            <h1 className="font-display text-4xl font-semibold tracking-tight text-foreground">
-              MLBB Showcase
-            </h1>
-            <p className="text-lg leading-relaxed text-muted">
-              A premium personal Mobile Legends: Bang Bang account showcase.
-            </p>
-            <div className="mt-6">
-              <p className="text-muted-foreground">
-                No published release yet. The public site will display this state
-                until a release is published through the admin workflow.
-              </p>
-            </div>
-          </div>
-        )}
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-border bg-muted/50 py-6 text-xs text-muted-foreground">
-        <p>
-          MLBB Showcase — Built with Next.js 16, TypeScript, Tailwind CSS, and
-          Supabase
+    <main className="min-h-screen bg-background px-6 py-16 text-center">
+      <div className="mx-auto max-w-4xl">
+        <h1 className="font-display text-4xl font-semibold tracking-tight text-foreground">
+          MLBB Showcase
+        </h1>
+        <p className="mt-4 text-lg leading-8 text-muted">
+          A curated look at the collection — signature heroes, top-tier skins,
+          and the milestones behind them.
         </p>
-      </footer>
-    </div>
+
+        {/* Spotlight header — cinematic header featuring the signature hero and account */}
+        <SpotlightHeader
+          hero={spotlightHero ?? undefined}
+          stats={spotlightStats}
+          className="mt-8"
+        />
+
+        {/* Stats strip — account stats and collection completeness */}
+        <StatsStrip stats={stripStats} className="mt-8" />
+      </div>
+
+      {/* Showcase tabs and milestone timeline — only published entries render */}
+      {published ? (
+        <div className="mx-auto mt-16 max-w-6xl text-left">
+          <ShowcaseTabs
+            heroes={showcase.signatureHeroes}
+            skins={showcase.topRaritySkins}
+            achievements={showcase.recentAchievements}
+            heroNames={heroNames}
+          />
+          <MilestoneTimeline
+            entries={showcase.timelineEntries}
+            className="mt-14"
+          />
+        </div>
+      ) : null}
+    </main>
   );
 }
