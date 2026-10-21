@@ -5,7 +5,7 @@ import {
   type HeroRole,
   type SkinRarity,
 } from "../content/validation.ts";
-import { formatEnumLabel } from "../showcase/showcase-model.ts";
+import { formatCount, formatEnumLabel } from "../showcase/showcase-model.ts";
 
 /**
  * Typed, composable filtering for the public collection explorer (task 05-04).
@@ -82,7 +82,11 @@ export interface ExplorerFilters {
   role: ExplorerRoleFilter;
   /** Skin rarity (skins view only; ignored while viewing heroes). */
   rarity: ExplorerRarityFilter;
-  /** Skin series, exact but case-insensitive (skins view only). */
+  /**
+   * Skin series (skins view only). Data-derived option list, so it is read as
+   * bounded text rather than a static enum — but it uses the same `"all"`
+   * sentinel as every other filter to mean "no filter".
+   */
   series: string;
   /** Ownership (skins view only — published heroes carry no ownership flag). */
   ownership: ExplorerOwnershipFilter;
@@ -175,10 +179,7 @@ export function parseExplorerState(
       rarity:
         readEnum(read(EXPLORER_PARAM_KEYS.rarity), EXPLORER_RARITY_OPTIONS) ??
         "all",
-      series: readText(
-        read(EXPLORER_PARAM_KEYS.series),
-        EXPLORER_SERIES_MAX_LENGTH
-      ),
+      series: readSeries(read(EXPLORER_PARAM_KEYS.series)),
       ownership:
         readEnum(
           read(EXPLORER_PARAM_KEYS.ownership),
@@ -670,6 +671,40 @@ export function runExplorer(
   };
 }
 
+/** Nouns for the status line, spelled out so "heroes" never becomes "heros". */
+const VIEW_NOUNS: Record<ExplorerView, { singular: string; plural: string }> = {
+  heroes: { singular: "hero", plural: "heroes" },
+  skins: { singular: "skin", plural: "skins" },
+};
+
+/**
+ * The line announced by the results grid (`role="status"`), e.g.
+ * `Showing 1–24 of 30 heroes` or
+ * `Showing 1–5 of 5 matching skins · 50 published`.
+ *
+ * Derived from the same run that renders the grid, so the announced numbers
+ * can never disagree with the visible cards. Returns `""` when there is
+ * nothing to announce (no matches) — the empty state speaks for itself.
+ */
+export function buildExplorerStatusLine(
+  range: { from: number; to: number } | null,
+  matchingCount: number,
+  publishedCount: number,
+  view: ExplorerView,
+  activeFilters: number
+): string {
+  if (range === null) {
+    return "";
+  }
+  const nouns = VIEW_NOUNS[view];
+  const noun = matchingCount === 1 ? nouns.singular : nouns.plural;
+  const shown = `Showing ${formatCount(range.from)}–${formatCount(range.to)} of ${formatCount(matchingCount)} ${activeFilters > 0 ? `matching ${noun}` : noun}`;
+  if (activeFilters > 0 && publishedCount !== matchingCount) {
+    return `${shown} · ${formatCount(publishedCount)} published`;
+  }
+  return shown;
+}
+
 // ---------------------------------------------------------------------------
 // Internals
 // ---------------------------------------------------------------------------
@@ -699,6 +734,21 @@ function readText(
   }
   // Slice by code point so a surrogate pair is never cut in half.
   return Array.from(trimmed).slice(0, maxLength).join("");
+}
+
+/**
+ * Reads the series filter: bounded free text (its option list is data-derived,
+ * so there is no static enum to validate against), with an absent, empty or
+ * whitespace-only value collapsing to the `"all"` sentinel.
+ *
+ * That collapse is what keeps the parser consistent with the rest of the
+ * model: `""` is not a real series yet would fail the `series !== "all"` check
+ * in {@link filterSkinsForExplorer}, excluding every skin that has no series
+ * (and every series match, since nothing equals `""`).
+ */
+function readSeries(value: string | string[] | undefined): string {
+  const text = readText(value, EXPLORER_SERIES_MAX_LENGTH);
+  return text === "" ? DEFAULT_EXPLORER_FILTERS.series : text;
 }
 
 function readPage(value: string | string[] | undefined): number {

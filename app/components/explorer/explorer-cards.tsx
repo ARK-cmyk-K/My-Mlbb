@@ -26,6 +26,24 @@ import {
 
 const CHIP_BASE = "shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium";
 
+const ACTION_BUTTON =
+  "inline-flex items-center rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-border-strong";
+
+/**
+ * The optional overlay actions a card can offer (task 05-05).
+ *
+ * The cards stay presentational: they render the buttons and report the
+ * clicks, but the explorer owns the state that decides which modal opens.
+ */
+export interface ExplorerCardActions {
+  /** Opens the quick view for this entry. */
+  onQuickView?: () => void;
+  /** Adds this entry to the comparison tray, or removes it when it is there. */
+  onCompare?: () => void;
+  /** True when this entry is already in the comparison tray. */
+  compareSelected?: boolean;
+}
+
 /** Signature chip — identical treatment to the showcase tabs (`05-03`). */
 function SignatureChip() {
   return (
@@ -44,7 +62,13 @@ function FavoriteChip() {
   );
 }
 
-export function ExplorerHeroCard({ hero }: { hero: PublishedHero }) {
+export function ExplorerHeroCard({
+  hero,
+  actions,
+}: {
+  hero: PublishedHero;
+  actions?: ExplorerCardActions;
+}) {
   const roles = hero.secondaryRole
     ? `${formatEnumLabel(hero.primaryRole)} / ${formatEnumLabel(hero.secondaryRole)}`
     : formatEnumLabel(hero.primaryRole);
@@ -105,6 +129,8 @@ export function ExplorerHeroCard({ hero }: { hero: PublishedHero }) {
             </dd>
           </div>
         </dl>
+
+        {actions ? <CardActions actions={actions} name={hero.name} /> : null}
       </div>
     </article>
   );
@@ -113,9 +139,11 @@ export function ExplorerHeroCard({ hero }: { hero: PublishedHero }) {
 export function ExplorerSkinCard({
   skin,
   heroName,
+  actions,
 }: {
   skin: PublishedSkin;
   heroName?: string;
+  actions?: ExplorerCardActions;
 }) {
   const token = rarityToken(skin.rarity);
   const acquiredOn = formatDate(skin.acquisitionDate);
@@ -174,8 +202,58 @@ export function ExplorerSkinCard({
             "Acquisition not recorded"
           )}
         </p>
+
+        {actions ? <CardActions actions={actions} name={skin.name} /> : null}
       </div>
     </article>
+  );
+}
+
+/**
+ * The quick view / compare buttons at the foot of a card.
+ *
+ * The compare button is a toggle (`aria-pressed`), so its state is announced
+ * rather than only implied by the label.
+ */
+function CardActions({
+  actions,
+  name,
+}: {
+  actions: ExplorerCardActions;
+  name: string;
+}) {
+  if (!actions.onQuickView && !actions.onCompare) {
+    return null;
+  }
+
+  const selected = actions.compareSelected === true;
+
+  return (
+    <div className="mt-3 flex flex-wrap gap-2 border-t border-border/60 pt-3">
+      {actions.onQuickView ? (
+        <button
+          type="button"
+          onClick={actions.onQuickView}
+          className={ACTION_BUTTON}
+        >
+          Quick view
+          <span className="sr-only">{` — ${name}`}</span>
+        </button>
+      ) : null}
+      {actions.onCompare ? (
+        <button
+          type="button"
+          onClick={actions.onCompare}
+          aria-pressed={selected}
+          className={`${ACTION_BUTTON} ${
+            selected ? "border-primary bg-primary/10 text-primary" : ""
+          }`}
+        >
+          {selected ? "In comparison" : "Compare"}
+          <span className="sr-only">{` — ${name}`}</span>
+        </button>
+      ) : null}
+    </div>
   );
 }
 

@@ -156,6 +156,13 @@ export function ExplorerControls({
             value={filters.series}
             options={[
               { value: "all", label: "All series" },
+              // A hand-edited URL can name a series the release does not
+              // contain; keep it selectable (and visibly active) instead of
+              // letting the <select> silently fall back to the first option.
+              ...(filters.series !== "all" &&
+              !facets.series.includes(filters.series)
+                ? [{ value: filters.series, label: filters.series }]
+                : []),
               ...facets.series.map((series) => ({ value: series, label: series })),
             ]}
             onChange={(value) => patch({ series: value })}

@@ -199,6 +199,29 @@
   --color-accent-emerald-text: var(--accent-emerald-text);
 }
 
+/* Overlay entrance animations (task 05-05 — quick view and comparison modals).
+   The `motion-reduce:animate-none` utility on the animated elements is the
+   first guard; the global `prefers-reduced-motion` block below is the second. */
+@keyframes mlbb-modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes mlbb-modal-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @layer base {
   body {
     background-color: var(--background);

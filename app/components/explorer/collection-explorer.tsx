@@ -12,7 +12,16 @@ import {
   ExplorerControls,
   ExplorerViewSwitcher,
 } from "./explorer-controls";
+import { ComparisonModal } from "@/app/components/compare/comparison-modal";
+import { CompareTray } from "@/app/components/compare/compare-tray";
+import { QuickViewModal } from "@/app/components/compare/quick-view-modal";
 import {
+  resolveComparisonEntries,
+  resolveEntry,
+  type EntryRef,
+} from "@/app/lib/compare/compare-model";
+import {
+  buildExplorerStatusLine,
   clearExplorerFilters,
   countActiveFilters,
   explorerStateKey,
@@ -47,8 +56,14 @@ import { formatCount } from "@/app/lib/showcase/showcase-model";
  * `runExplorer()` with the same inputs, so the HTML first delivered always
  * matches what the controls display — no hydration drift, no invented data.
  *
- * Deliberately out of scope here: comparison/quick-view modals and persisted
- * visitor favourites belong to tasks `05-05`/`05-06`.
+ * Task `05-05` adds the two overlay surfaces on top of that: a **quick view**
+ * for one published entry and a **two-item comparison** (Skin View and Hero
+ * Performance View). This component owns which entry is open and which two
+ * entries are queued for comparison; the modals themselves are separate
+ * components and all of their data comes from the published collection.
+ *
+ * Deliberately out of scope here: visitor favourites persisted in browser
+ * storage and social sharing — both belong to task `05-06`.
  */
 
 /** Delay before writing filter changes to the URL (also avoids history-API rate limits while typing). */
@@ -68,6 +83,13 @@ export function CollectionExplorer({
   const [state, setState] = useState<ExplorerState>(initialState);
   const idPrefix = `explorer-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const sectionRef = useRef<HTMLElement | null>(null);
+
+  // Overlay state (task 05-05). Only *references* are stored — the entries
+  // themselves are resolved from the published collection on every render, so
+  // a modal can never show a stale or half-populated entry.
+  const [quickViewRef, setQuickViewRef] = useState<EntryRef | null>(null);
+  const [compareRefs, setCompareRefs] = useState<EntryRef[]>([]);
+  const [comparisonOpen, setComparisonOpen] = useState(false);
 
   const propsKey = explorerStateKey(initialState);
   const adoptedKeyRef = useRef(propsKey);
@@ -115,7 +137,41 @@ export function CollectionExplorer({
   };
   const viewTotal = counts[state.view];
   const activeFilters = countActiveFilters(state.filters);
-  const viewLabel = state.view === "heroes" ? "hero" : "skin";
+
+  const quickViewEntry = quickViewRef
+    ? resolveEntry(collection, quickViewRef)
+    : null;
+  const compareEntries = resolveComparisonEntries(collection, compareRefs);
+
+  /** Adds an entry to the comparison tray, or removes it when it is there. */
+  function toggleCompare(ref: EntryRef) {
+    setCompareRefs((current) => {
+      const index = current.findIndex(
+        (entry) => entry.kind === ref.kind && entry.id === ref.id
+      );
+      if (index >= 0) {
+        return current.filter((_, position) => position !== index);
+      }
+      if (current.length >= 2) {
+        // The tray holds two entries; a third selection replaces the oldest.
+        return [current[1], ref];
+      }
+      return [...current, ref];
+    });
+  }
+
+  function isCompared(ref: EntryRef): boolean {
+    return compareRefs.some(
+      (entry) => entry.kind === ref.kind && entry.id === ref.id
+    );
+  }
+
+  const compareStatus =
+    compareEntries.length === 0
+      ? ""
+      : compareEntries.length === 1
+        ? `${compareEntries[0].name} selected for comparison. Choose one more entry.`
+        : `${compareEntries[0].name} and ${compareEntries[1].name} selected for comparison.`;
 
   return (
     <section
@@ -184,7 +240,7 @@ export function CollectionExplorer({
                 role="status"
                 className="mt-6 text-sm text-muted"
               >
-                {buildStatusLine(run.range, run.matchingCount, viewTotal, viewLabel, activeFilters)}
+                {buildExplorerStatusLine(run.range, run.matchingCount, viewTotal, state.view, activeFilters)}
               </p>
 
               <ul
@@ -192,23 +248,41 @@ export function CollectionExplorer({
                 className="mt-4 grid list-none gap-4 sm:grid-cols-2 lg:grid-cols-3"
               >
                 {state.view === "heroes"
-                  ? run.heroes.map((entry) => (
-                      <li key={entry.id}>
-                        <ExplorerHeroCard hero={entry} />
-                      </li>
-                    ))
-                  : run.skins.map((entry) => (
-                      <li key={entry.id}>
-                        <ExplorerSkinCard
-                          skin={entry}
-                          heroName={
-                            entry.heroId === null
-                              ? undefined
-                              : findHeroName(collection, entry.heroId)
-                          }
-                        />
-                      </li>
-                    ))}
+                  ? run.heroes.map((entry) => {
+                      const ref: EntryRef = { kind: "hero", id: entry.id };
+                      return (
+                        <li key={entry.id}>
+                          <ExplorerHeroCard
+                            hero={entry}
+                            actions={{
+                              onQuickView: () => setQuickViewRef(ref),
+                              onCompare: () => toggleCompare(ref),
+                              compareSelected: isCompared(ref),
+                            }}
+                          />
+                        </li>
+                      );
+                    })
+                  : run.skins.map((entry) => {
+                      const ref: EntryRef = { kind: "skin", id: entry.id };
+                      return (
+                        <li key={entry.id}>
+                          <ExplorerSkinCard
+                            skin={entry}
+                            heroName={
+                              entry.heroId === null
+                                ? undefined
+                                : findHeroName(collection, entry.heroId)
+                            }
+                            actions={{
+                              onQuickView: () => setQuickViewRef(ref),
+                              onCompare: () => toggleCompare(ref),
+                              compareSelected: isCompared(ref),
+                            }}
+                          />
+                        </li>
+                      );
+                    })}
               </ul>
 
               <PageNav
@@ -222,31 +296,37 @@ export function CollectionExplorer({
           )}
         </>
       )}
+
+      {/* Announced politely whenever the comparison selection changes. */}
+      <p role="status" className="sr-only">
+        {compareStatus}
+      </p>
+
+      {compareEntries.length > 0 ? (
+        <CompareTray
+          entries={compareEntries}
+          onClear={() => setCompareRefs([])}
+          onOpen={() => setComparisonOpen(true)}
+        />
+      ) : null}
+
+      {quickViewEntry ? (
+        <QuickViewModal
+          collection={collection}
+          entry={quickViewEntry}
+          onClose={() => setQuickViewRef(null)}
+        />
+      ) : null}
+
+      {comparisonOpen && compareEntries.length === 2 ? (
+        <ComparisonModal
+          collection={collection}
+          entries={compareEntries}
+          onClose={() => setComparisonOpen(false)}
+        />
+      ) : null}
     </section>
   );
-}
-
-/**
- * `Showing 1–24 of 120 skins · 48 published` when filters are active, or just
- * the first half when they are not. Numbers come straight from the run, so the
- * announced text can never disagree with the rendered grid.
- */
-function buildStatusLine(
-  range: { from: number; to: number } | null,
-  matchingCount: number,
-  publishedCount: number,
-  viewLabel: string,
-  activeFilters: number
-): string {
-  if (range === null) {
-    return "";
-  }
-  const plural = matchingCount === 1 ? viewLabel : `${viewLabel}s`;
-  const shown = `Showing ${formatCount(range.from)}–${formatCount(range.to)} of ${formatCount(matchingCount)} ${activeFilters > 0 ? `matching ${plural}` : plural}`;
-  if (activeFilters > 0 && publishedCount !== matchingCount) {
-    return `${shown} · ${formatCount(publishedCount)} published`;
-  }
-  return shown;
 }
 
 function PageNav({

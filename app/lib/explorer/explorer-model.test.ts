@@ -5,6 +5,7 @@ import type { PublishedHero, PublishedSkin } from "../content/contracts.ts";
 import { HERO_ROLES, SKIN_RARITIES } from "../content/validation.ts";
 import {
   buildExplorerFacets,
+  buildExplorerStatusLine,
   clearExplorerFilters,
   countActiveFilters,
   explorerStateKey,
@@ -221,7 +222,8 @@ test("facets only offer values the published data contains, in enum order", () =
 
   const facets = buildExplorerFacets({ heroes, skins });
   assert.deepEqual(facets.roles, ["tank", "mage", "marksman"]);
-  assert.deepEqual(facets.rarities, ["basic", "legend", "epic", "collector"]);
+  // Enum order = rarity tier order (basic → collector), so the rarest sorts last.
+  assert.deepEqual(facets.rarities, ["basic", "epic", "legend", "collector"]);
   assert.deepEqual(facets.series, ["Abyss", "Omega"]);
   assert.equal(facets.hasFavoriteHeroes, false);
   assert.equal(facets.hasFavoriteSkins, false);
@@ -446,6 +448,32 @@ test("pagination bounds results and folds out-of-range pages in", () => {
 // ---------------------------------------------------------------------------
 // Full run
 // ---------------------------------------------------------------------------
+
+test("the status line reads naturally in every combination", () => {
+  assert.equal(
+    buildExplorerStatusLine(null, 0, 30, "heroes", 0),
+    "",
+    "no matches leave the announcement to the empty state"
+  );
+  assert.equal(
+    buildExplorerStatusLine({ from: 1, to: 24 }, 30, 30, "heroes", 0),
+    "Showing 1–24 of 30 heroes",
+    "plural nouns are spelled out (heroes, never heros)"
+  );
+  assert.equal(
+    buildExplorerStatusLine({ from: 1, to: 1 }, 1, 30, "heroes", 1),
+    "Showing 1–1 of 1 matching hero · 30 published"
+  );
+  assert.equal(
+    buildExplorerStatusLine({ from: 1, to: 5 }, 5, 50, "skins", 2),
+    "Showing 1–5 of 5 matching skins · 50 published"
+  );
+  assert.equal(
+    buildExplorerStatusLine({ from: 1, to: 5 }, 1, 1, "skins", 1),
+    "Showing 1–5 of 1 matching skin",
+    "the published suffix is redundant when everything matches"
+  );
+});
 
 test("runExplorer derives one consistent result set per state", () => {
   const heroes = Array.from({ length: 30 }, (_, index) =>
